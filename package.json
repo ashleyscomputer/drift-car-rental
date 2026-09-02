@@ -1,6 +1,12 @@
 {
-  "name": "sites-project",
+  "name": "drift-car-rental",
   "version": "0.1.0",
+  "description": "Apple-inspired South African car-rental catalogue, booking prototype, admin dashboard and on-device AI guide.",
+  "homepage": "https://drift-car-rental-2026.ashleyvr90.chatgpt.site",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ashleyscomputer/drift-car-rental.git"
+  },
   "private": true,
   "engines": {
     "node": ">=22.13.0"

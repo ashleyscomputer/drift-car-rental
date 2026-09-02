@@ -1,0 +1,3 @@
+# Drift Car Rental is a Node.js/TypeScript application.
+# Python is not required and there are no pip dependencies.
+# Install the application dependencies with: npm install
