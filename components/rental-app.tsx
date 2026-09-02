@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
+import { Chatbot } from '@/components/chatbot';
 import type { Booking, Vehicle } from '@/lib/store';
 
 type Section = 'Dashboard' | 'Vehicles' | 'Brands' | 'Categories' | 'Features' | 'Customers' | 'Bookings' | 'Payments' | 'Reports' | 'Database';
@@ -56,7 +57,7 @@ export default function RentalApp() {
   const [vehicleFormOpen, setVehicleFormOpen] = useState(false);
   const [tableOpen, setTableOpen] = useState(false);
   const [toast, setToast] = useState('');
-  const [filters, setFilters] = useState({ brand: 'All', model: 'All', type: 'All', year: 'All', maxPrice: '3500', transmission: 'All', features: [] as string[] });
+  const [filters, setFilters] = useState({ brand: 'All', model: 'All', type: 'All', year: 'All', maxPrice: '4500', transmission: 'All', features: [] as string[] });
 
   const refresh = async () => {
     const [v, b, t] = await Promise.all([fetch('/api/vehicles'), fetch('/api/bookings'), fetch('/api/database')]);
@@ -103,16 +104,17 @@ export default function RentalApp() {
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
             <FilterSelect label="Brand" value={filters.brand} values={['All', ...brands]} onChange={(brand) => setFilters({ ...filters, brand, model: 'All' })} />
             <FilterSelect label="Model" value={filters.model} values={['All', ...models]} onChange={(model) => setFilters({ ...filters, model })} />
-            <FilterSelect label="Vehicle type" value={filters.type} values={['All', 'Hatchback', 'Sedan', 'SUV', 'Bakkie']} onChange={(type) => setFilters({ ...filters, type })} />
+            <FilterSelect label="Vehicle type" value={filters.type} values={['All', 'Hatchback', 'Sedan', 'SUV', 'Bakkie', 'Van']} onChange={(type) => setFilters({ ...filters, type })} />
             <FilterSelect label="Year" value={filters.year} values={['All', '2025', '2024']} onChange={(year) => setFilters({ ...filters, year })} />
             <FilterSelect label="Transmission" value={filters.transmission} values={['All', 'Automatic', 'Manual']} onChange={(transmission) => setFilters({ ...filters, transmission })} />
-            <label className="rounded-2xl bg-[#f5f5f7] px-4 py-3"><span className="block text-[11px] text-black/45">Maximum daily rate</span><span className="mt-1 block text-sm font-medium">{currency(Number(filters.maxPrice))}</span><input className="mt-2 w-full accent-[#0071e3]" type="range" min="350" max="3500" step="50" value={filters.maxPrice} onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })} /></label>
-            <Button variant="secondary" className="h-auto min-h-16 rounded-2xl" onClick={() => setFilters({ brand: 'All', model: 'All', type: 'All', year: 'All', maxPrice: '3500', transmission: 'All', features: [] })}><X /> Clear filters</Button>
+            <label className="rounded-2xl bg-[#f5f5f7] px-4 py-3"><span className="block text-[11px] text-black/45">Maximum daily rate</span><span className="mt-1 block text-sm font-medium">{currency(Number(filters.maxPrice))}</span><input className="mt-2 w-full accent-[#0071e3]" type="range" min="300" max="4500" step="50" value={filters.maxPrice} onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })} /></label>
+            <Button variant="secondary" className="h-auto min-h-16 rounded-2xl" onClick={() => setFilters({ brand: 'All', model: 'All', type: 'All', year: 'All', maxPrice: '4500', transmission: 'All', features: [] })}><X /> Clear filters</Button>
           </div>
           <div className="mt-3 flex flex-wrap gap-2 border-t border-black/[.05] pt-3">
             <span className="mr-1 flex items-center text-xs text-black/45">Extras</span>
             {features.map((feature) => { const active = filters.features.includes(feature); return <label key={feature} className={`flex cursor-pointer items-center gap-2 rounded-full px-3 py-2 text-xs transition ${active ? 'bg-blue-50 text-blue-700' : 'bg-[#f5f5f7] text-black/60'}`}><input type="checkbox" className="size-4 accent-[#0071e3]" checked={active} onChange={() => setFilters({ ...filters, features: active ? filters.features.filter((f) => f !== feature) : [...filters.features, feature] })} />{feature}</label>; })}
           </div>
+          <p className="mt-3 text-[11px] leading-4 text-black/40">Indicative South African market-aligned rates shown from per day. Dates, branch, rental duration, cover, mileage and availability affect a final real-world quote.</p>
         </div>
 
         {filtered.length ? <div className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">{filtered.map((vehicle) => <VehicleCard key={vehicle.id} vehicle={vehicle} onView={() => setSelected(vehicle)} onBook={() => openBooking(vehicle)} />)}</div> : <div className="mt-6 rounded-[28px] bg-white p-16 text-center"><Search className="mx-auto size-8 text-black/25" /><h3 className="mt-4 font-semibold">No vehicles found</h3><p className="mt-1 text-sm text-black/45">Try widening your search filters.</p></div>}
@@ -120,6 +122,7 @@ export default function RentalApp() {
 
       <VehicleDialog vehicle={selected} open={!!selected && !bookingOpen} onOpenChange={(open) => !open && setSelected(null)} onBook={() => selected && openBooking(selected)} />
       <BookingDialog vehicle={selected} open={bookingOpen} onOpenChange={setBookingOpen} onBooked={() => { setBookingOpen(false); setSelected(null); setToast('Booking confirmed — your reference is ready.'); refresh(); }} />
+      <Chatbot vehicles={vehicles} />
       {toast && <Toast message={toast} />}
     </main>
   );
@@ -134,12 +137,20 @@ function FilterSelect({ label, value, values, onChange }: { label: string; value
 }
 
 function VehicleCard({ vehicle, onView, onBook }: { vehicle: Vehicle; onView: () => void; onBook: () => void }) {
-  return <article className="group overflow-hidden rounded-[28px] bg-white shadow-[0_1px_0_rgba(0,0,0,.04),0_16px_40px_rgba(0,0,0,.05)]"><button onClick={onView} className="relative block aspect-[4/2.65] w-full overflow-hidden bg-black/5 text-left"><img src={vehicle.image} alt={`${vehicle.brand} ${vehicle.model}`} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" /><Badge className={`absolute left-4 top-4 border-0 ${statusClass(vehicle.status)}`}>{vehicle.status}</Badge><Badge className={`absolute right-4 top-4 border-0 ${vehicle.dailyRate >= 1500 ? 'bg-black/80 text-white backdrop-blur' : 'bg-white/90 text-black/65 backdrop-blur'}`}>{vehicle.dailyRate >= 1500 ? 'Premium' : vehicle.dailyRate < 600 ? 'Value' : 'Comfort'}</Badge></button><div className="p-6"><div className="flex items-start justify-between gap-4"><div><h3 className="text-lg font-semibold tracking-tight">{vehicle.brand} {vehicle.model}</h3><p className="mt-1 text-sm text-black/45">{vehicle.year} · {vehicle.type} · {vehicle.transmission}</p></div><p className="text-right text-xs text-black/45"><strong className="block text-xl text-black">{currency(vehicle.dailyRate)}</strong>per day</p></div><div className="mt-5 flex gap-2"><Button variant="secondary" onClick={onView} className="h-10 flex-1 rounded-full">Details</Button><Button onClick={onBook} disabled={vehicle.status !== 'Available'} className="h-10 flex-1 rounded-full bg-[#0071e3] text-white hover:bg-[#0077ed]">Book now</Button></div></div></article>;
+  return <article className="group overflow-hidden rounded-[28px] bg-white shadow-[0_1px_0_rgba(0,0,0,.04),0_16px_40px_rgba(0,0,0,.05)]"><button onClick={onView} className="relative block aspect-[4/2.65] w-full overflow-hidden bg-black/5 text-left"><img src={vehicle.image} alt={`${vehicle.brand} ${vehicle.model}`} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]" /><Badge className={`absolute left-4 top-4 border-0 ${statusClass(vehicle.status)}`}>{vehicle.status}</Badge><Badge className={`absolute right-4 top-4 border-0 ${vehicle.dailyRate >= 1500 ? 'bg-black/80 text-white backdrop-blur' : 'bg-white/90 text-black/65 backdrop-blur'}`}>{vehicle.dailyRate >= 1500 ? 'Premium' : vehicle.dailyRate < 600 ? 'Value' : 'Comfort'}</Badge></button><div className="p-6"><div className="flex items-start justify-between gap-4"><div><h3 className="text-lg font-semibold tracking-tight">{vehicle.brand} {vehicle.model}</h3><p className="mt-1 text-sm text-black/45">{vehicle.year} · {vehicle.type} · {vehicle.transmission}</p></div><p className="text-right text-xs text-black/45"><span className="block">from</span><strong className="block text-xl text-black">{currency(vehicle.dailyRate)}</strong>per day</p></div><div className="mt-5 flex gap-2"><Button variant="secondary" onClick={onView} className="h-10 flex-1 rounded-full">Details</Button><Button onClick={onBook} disabled={vehicle.status !== 'Available'} className="h-10 flex-1 rounded-full bg-[#0071e3] text-white hover:bg-[#0077ed]">Book now</Button></div></div></article>;
 }
 
 function VehicleDialog({ vehicle, open, onOpenChange, onBook }: { vehicle: Vehicle | null; open: boolean; onOpenChange: (open: boolean) => void; onBook: () => void }) {
   if (!vehicle) return null;
-  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[92vh] overflow-y-auto rounded-[28px] p-0 sm:max-w-3xl"><img src={vehicle.image} alt={`${vehicle.brand} ${vehicle.model}`} className="aspect-[16/7] w-full rounded-t-[28px] object-cover" /><div className="p-7 sm:p-8"><DialogHeader><div className="flex flex-wrap items-start justify-between gap-4"><div><DialogTitle className="text-3xl font-semibold tracking-[-.04em]">{vehicle.brand} {vehicle.model}</DialogTitle><DialogDescription className="mt-2">{vehicle.description}</DialogDescription></div><div className="text-right"><strong className="text-2xl">{currency(vehicle.dailyRate)}</strong><span className="block text-xs text-black/45">per day</span></div></div></DialogHeader><div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">{[['Year', vehicle.year], ['Type', vehicle.type], ['Transmission', vehicle.transmission], ['Doors', vehicle.doors]].map(([k, v]) => <div key={k} className="rounded-2xl bg-[#f5f5f7] p-4"><p className="text-xs text-black/45">{k}</p><p className="mt-1 font-medium">{v}</p></div>)}</div><div className="mt-7"><h4 className="font-medium">Included features</h4><div className="mt-3 flex flex-wrap gap-2">{vehicle.features.map((item) => <span key={item} className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-2 text-xs text-blue-700"><Check className="size-3" />{item}</span>)}</div></div><Button onClick={onBook} disabled={vehicle.status !== 'Available'} className="mt-8 h-12 w-full rounded-full bg-[#0071e3] text-white hover:bg-[#0077ed]">Book this vehicle <ArrowRight /></Button></div></DialogContent></Dialog>;
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[92vh] overflow-y-auto rounded-[28px] p-0 sm:max-w-3xl"><VehicleGallery vehicle={vehicle} /><div className="p-7 sm:p-8"><DialogHeader><div className="flex flex-wrap items-start justify-between gap-4"><div><DialogTitle className="text-3xl font-semibold tracking-[-.04em]">{vehicle.brand} {vehicle.model}</DialogTitle><DialogDescription className="mt-2">{vehicle.description}</DialogDescription></div><div className="text-right"><span className="block text-xs text-black/45">from</span><strong className="text-2xl">{currency(vehicle.dailyRate)}</strong><span className="block text-xs text-black/45">per day</span></div></div></DialogHeader><div className="mt-7 grid grid-cols-2 gap-3 sm:grid-cols-4">{[['Year', vehicle.year], ['Type', vehicle.type], ['Transmission', vehicle.transmission], ['Doors', vehicle.doors]].map(([k, v]) => <div key={k} className="rounded-2xl bg-[#f5f5f7] p-4"><p className="text-xs text-black/45">{k}</p><p className="mt-1 font-medium">{v}</p></div>)}</div><div className="mt-7"><h4 className="font-medium">Included features</h4><div className="mt-3 flex flex-wrap gap-2">{vehicle.features.map((item) => <span key={item} className="flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-2 text-xs text-blue-700"><Check className="size-3" />{item}</span>)}</div></div><Button onClick={onBook} disabled={vehicle.status !== 'Available'} className="mt-8 h-12 w-full rounded-full bg-[#0071e3] text-white hover:bg-[#0077ed]">Book this vehicle <ArrowRight /></Button></div></DialogContent></Dialog>;
+}
+
+function VehicleGallery({ vehicle }: { vehicle: Vehicle }) {
+  const [active, setActive] = useState(0);
+  useEffect(() => setActive(0), [vehicle.id]);
+  const slug = vehicle.image.split('/').at(-1)?.replace(/\.[^.]+$/, '') ?? '';
+  const images = [vehicle.image, ...[1, 2, 3].map((index) => `/vehicles/gallery/${slug}/${index}.jpg`)];
+  return <div className="bg-[#f5f5f7] p-3"><img src={images[active]} alt={`${vehicle.brand} ${vehicle.model} view ${active + 1}`} className="aspect-[16/7] w-full rounded-[22px] object-cover" /><div className="mt-3 grid grid-cols-4 gap-2">{images.map((image, index) => <button key={image} onClick={() => setActive(index)} className={`overflow-hidden rounded-xl border-2 transition ${active === index ? 'border-[#0071e3]' : 'border-transparent opacity-70 hover:opacity-100'}`} aria-label={`View image ${index + 1}`}><img src={image} alt="" className="aspect-[16/10] w-full object-cover" /></button>)}</div></div>;
 }
 
 function BookingDialog({ vehicle, open, onOpenChange, onBooked }: { vehicle: Vehicle | null; open: boolean; onOpenChange: (open: boolean) => void; onBooked: () => void }) {
