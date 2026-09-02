@@ -7,7 +7,7 @@ npm ci
 npm run build
 ```
 
-The repository CI workflow runs the same production build for pushes and pull requests targeting `main`.
+Run the production build locally before every release and pull request.
 
 ## Current hosted site
 
@@ -29,4 +29,3 @@ The current prototype requires no secrets or runtime variables. Do not commit `.
 6. Check the first general-knowledge request and model-loading message.
 7. Verify title, description and social-preview image.
 8. Publish the exact reviewed commit.
-

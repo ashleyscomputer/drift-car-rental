@@ -6,7 +6,6 @@
   **A polished, Apple-inspired car-rental experience for South Africa.**
 
   [![Live site](https://img.shields.io/badge/Live_Site-Open_Drift-0071e3?style=for-the-badge)](https://drift-car-rental-2026.ashleyvr90.chatgpt.site)
-  [![CI](https://img.shields.io/github/actions/workflow/status/ashleyscomputer/drift-car-rental/ci.yml?branch=main&style=for-the-badge&label=Build)](https://github.com/ashleyscomputer/drift-car-rental/actions)
   [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
   [![React](https://img.shields.io/badge/React-19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
 
@@ -33,7 +32,7 @@ The catalogue contains **40 vehicles** across value, comfort and premium tiers, 
 - Hugging Face Transformers.js chatbot for app help and general knowledge
 - Compact AI model that runs in a Web Worker inside the browser
 - In-memory REST-style backend ready for a future relational database
-- Private production deployment and automated GitHub build verification
+- Private production deployment and documented build verification
 
 ## Technology
 
@@ -45,7 +44,7 @@ The catalogue contains **40 vehicles** across value, comfort and premium tiers, 
 | AI | `@huggingface/transformers`, ONNX, browser Web Worker |
 | State | In-memory TypeScript store (database intentionally deferred) |
 | Hosting | OpenAI Sites / Cloudflare-compatible output |
-| Quality | Oxlint, Oxfmt, GitHub Actions |
+| Quality | Oxlint, Oxfmt, production build checks |
 
 ## Quick start
 
