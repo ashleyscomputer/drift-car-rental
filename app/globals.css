@@ -137,3 +137,20 @@ body {
 ::selection {
   background: rgba(0, 113, 227, 0.18);
 }
+
+@keyframes drift-in { from { opacity: 0; transform: translateY(18px) scale(.985); } to { opacity: 1; transform: none; } }
+@keyframes drift-float { 0%,100% { transform: translate3d(0,0,0) rotate(-8deg); } 50% { transform: translate3d(-22px,18px,0) rotate(6deg); } }
+@keyframes drift-drive { from { transform: scale(1.04) translateX(-.8%); } to { transform: scale(1.08) translateX(.8%); } }
+@keyframes success-pop { 0% { opacity: 0; transform: scale(.35) rotate(-18deg); } 70% { transform: scale(1.1) rotate(3deg); } 100% { opacity: 1; transform: scale(1); } }
+.page-enter { animation: drift-in .65s cubic-bezier(.22,1,.36,1) both; }
+.auth-orbit { animation: drift-float 9s ease-in-out infinite; }
+.hero-drift { animation: drift-drive 12s ease-in-out infinite alternate; }
+.success-pop { animation: success-pop .7s cubic-bezier(.22,1,.36,1) both; }
+.payment-shimmer { position: relative; overflow: hidden; }
+.payment-shimmer::after { content: ''; position: absolute; inset: 0; transform: translateX(-120%); background: linear-gradient(100deg,transparent,rgba(255,255,255,.25),transparent); animation: shimmer 2.5s infinite; }
+@keyframes shimmer { to { transform: translateX(120%); } }
+@media (hover:hover) {
+  .vehicle-3d-card { transform-style: preserve-3d; transition: transform .55s cubic-bezier(.22,1,.36,1), box-shadow .55s; }
+  .vehicle-3d-card:hover { transform: perspective(1100px) translateY(-8px) rotateX(1.5deg) rotateY(-2deg); box-shadow: 0 28px 65px rgba(0,0,0,.14); }
+}
+@media (prefers-reduced-motion: reduce) { .page-enter,.auth-orbit,.hero-drift,.success-pop,.payment-shimmer::after { animation: none !important; } }

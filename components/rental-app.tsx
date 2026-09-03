@@ -15,6 +15,7 @@ import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select'
 import { Textarea } from '@/components/ui/textarea';
 import { Chatbot } from '@/components/chatbot';
 import type { Booking, Vehicle } from '@/lib/store';
+import { CHECKOUT_KEY, readDemoUser, signOutDemoUser, type DemoUser } from '@/lib/demo-auth';
 
 type Section = 'Dashboard' | 'Vehicles' | 'Brands' | 'Categories' | 'Features' | 'Customers' | 'Bookings' | 'Payments' | 'Reports' | 'Database';
 type DbTable = { name: string; rows: number; fields: string[] };
@@ -57,13 +58,14 @@ export default function RentalApp() {
   const [vehicleFormOpen, setVehicleFormOpen] = useState(false);
   const [tableOpen, setTableOpen] = useState(false);
   const [toast, setToast] = useState('');
+  const [user, setUser] = useState<DemoUser | null>(null);
   const [filters, setFilters] = useState({ brand: 'All', model: 'All', type: 'All', year: 'All', maxPrice: '4500', transmission: 'All', features: [] as string[] });
 
   const refresh = async () => {
     const [v, b, t] = await Promise.all([fetch('/api/vehicles'), fetch('/api/bookings'), fetch('/api/database')]);
     setVehicles(await v.json()); setBookings(await b.json()); setTables(await t.json());
   };
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => { refresh(); const updateUser = () => setUser(readDemoUser()); updateUser(); window.addEventListener('drift-auth-change', updateUser); window.addEventListener('storage', updateUser); return () => { window.removeEventListener('drift-auth-change', updateUser); window.removeEventListener('storage', updateUser); }; }, []);
   useEffect(() => { if (!toast) return; const timeout = setTimeout(() => setToast(''), 2800); return () => clearTimeout(timeout); }, [toast]);
 
   const brands = [...new Set(vehicles.map((v) => v.brand))];
@@ -84,10 +86,10 @@ export default function RentalApp() {
 
   return (
     <main className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f]">
-      <Header onAdmin={() => setMode('admin')} />
+      <Header user={user} onSignOut={() => { signOutDemoUser(); setToast('Signed out of this browser.'); }} onAdmin={() => setMode('admin')} />
       <section className="mx-auto max-w-7xl px-5 pb-12 pt-8 lg:px-8 lg:pt-12">
         <div className="relative min-h-[520px] overflow-hidden rounded-[36px] bg-[#dfe8ef] shadow-[0_24px_80px_rgba(0,0,0,.12)]">
-          <img src="/og.png" alt="Two premium Drift rental vehicles" className="absolute inset-0 h-full w-full object-cover" />
+          <img src="/og.png" alt="Two premium Drift rental vehicles" className="hero-drift absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/45 to-transparent" />
           <div className="relative z-10 flex min-h-[520px] max-w-2xl flex-col justify-end p-7 sm:p-12 lg:p-16">
             <p className="mb-3 text-xs font-semibold tracking-[.18em] text-[#0071e3]">EFFORTLESS CAR RENTAL</p>
@@ -121,15 +123,15 @@ export default function RentalApp() {
       </section>
 
       <VehicleDialog vehicle={selected} open={!!selected && !bookingOpen} onOpenChange={(open) => !open && setSelected(null)} onBook={() => selected && openBooking(selected)} />
-      <BookingDialog vehicle={selected} open={bookingOpen} onOpenChange={setBookingOpen} onBooked={() => { setBookingOpen(false); setSelected(null); setToast('Booking confirmed — your reference is ready.'); refresh(); }} />
+      <BookingDialog vehicle={selected} user={user} open={bookingOpen} onOpenChange={setBookingOpen} />
       <Chatbot vehicles={vehicles} />
       {toast && <Toast message={toast} />}
     </main>
   );
 }
 
-function Header({ onAdmin }: { onAdmin: () => void }) {
-  return <header className="sticky top-0 z-40 border-b border-black/5 bg-white/78 backdrop-blur-2xl"><div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8"><a href="#" className="flex items-center gap-2 text-lg font-semibold tracking-tight"><span className="grid size-8 place-items-center rounded-full bg-black text-white"><CarFront className="size-4" /></span>Drift</a><nav className="hidden items-center gap-8 text-sm text-black/55 md:flex"><a href="#browse" className="hover:text-black">Vehicles</a><a href="#" className="hover:text-black">My bookings</a><a href="#" className="hover:text-black">How it works</a></nav><Button onClick={onAdmin} className="h-9 rounded-full bg-black px-5 text-white hover:bg-black/80">Admin portal</Button></div></header>;
+function Header({ user, onSignOut, onAdmin }: { user: DemoUser | null; onSignOut: () => void; onAdmin: () => void }) {
+  return <header className="sticky top-0 z-40 border-b border-black/5 bg-white/78 backdrop-blur-2xl"><div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 lg:px-8"><a href="#" className="flex items-center gap-2 text-lg font-semibold tracking-tight"><span className="grid size-8 place-items-center rounded-full bg-black text-white"><CarFront className="size-4" /></span>Drift</a><nav className="hidden items-center gap-8 text-sm text-black/55 md:flex"><a href="#browse" className="hover:text-black">Vehicles</a><a href="#" className="hover:text-black">My bookings</a><a href="#" className="hover:text-black">How it works</a></nav><div className="flex items-center gap-2">{user ? <><span className="hidden rounded-full bg-[#f5f5f7] px-4 py-2 text-xs sm:block"><strong>{user.name}</strong></span><Button variant="ghost" onClick={onSignOut} className="h-9 rounded-full">Sign out</Button></> : <><a className="hidden text-sm font-medium sm:block" href="/login">Sign in</a><a className="rounded-full bg-[#0071e3] px-4 py-2 text-sm font-medium text-white" href="/register">Register</a></>}<Button onClick={onAdmin} className="hidden h-9 rounded-full bg-black px-5 text-white hover:bg-black/80 lg:inline-flex">Admin</Button></div></div></header>;
 }
 
 function FilterSelect({ label, value, values, onChange }: { label: string; value: string; values: string[]; onChange: (value: string) => void }) {
@@ -153,13 +155,13 @@ function VehicleGallery({ vehicle }: { vehicle: Vehicle }) {
   return <div className="bg-[#f5f5f7] p-3"><img src={images[active]} alt={`${vehicle.brand} ${vehicle.model} view ${active + 1}`} className="aspect-[16/7] w-full rounded-[22px] object-cover" /><div className="mt-3 grid grid-cols-4 gap-2">{images.map((image, index) => <button key={image} onClick={() => setActive(index)} className={`overflow-hidden rounded-xl border-2 transition ${active === index ? 'border-[#0071e3]' : 'border-transparent opacity-70 hover:opacity-100'}`} aria-label={`View image ${index + 1}`}><img src={image} alt="" className="aspect-[16/10] w-full object-cover" /></button>)}</div></div>;
 }
 
-function BookingDialog({ vehicle, open, onOpenChange, onBooked }: { vehicle: Vehicle | null; open: boolean; onOpenChange: (open: boolean) => void; onBooked: () => void }) {
+function BookingDialog({ vehicle, user, open, onOpenChange }: { vehicle: Vehicle | null; user: DemoUser | null; open: boolean; onOpenChange: (open: boolean) => void }) {
   const [form, setForm] = useState({ startDate: '2026-09-05', endDate: '2026-09-08', pickupCity: 'Kimberley', returnCity: 'Kimberley', customer: 'Demo Customer', email: 'demo@drift.co.za' });
   if (!vehicle) return null;
   const days = Math.max(1, Math.ceil((new Date(form.endDate).getTime() - new Date(form.startDate).getTime()) / 86400000));
   const total = days * vehicle.dailyRate;
-  const submit = async (e: FormEvent) => { e.preventDefault(); const response = await fetch('/api/bookings', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...form, vehicleId: vehicle.id, vehicle: `${vehicle.brand} ${vehicle.model}`, totalCost: total }) }); if (response.ok) onBooked(); };
-  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[92vh] overflow-y-auto rounded-[28px] p-0 sm:max-w-xl"><form onSubmit={submit}><div className="p-7 sm:p-8"><DialogHeader><DialogTitle className="text-2xl font-semibold tracking-tight">Complete your booking</DialogTitle><DialogDescription>{vehicle.brand} {vehicle.model} · {currency(vehicle.dailyRate)} per day</DialogDescription></DialogHeader><div className="mt-7 grid gap-4 sm:grid-cols-2"><FormField label="Pick-up date"><Input required type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></FormField><FormField label="Return date"><Input required type="date" min={form.startDate} value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></FormField><FormField label="Pick-up city"><NativeSelect className="w-full" value={form.pickupCity} onChange={(e) => setForm({ ...form, pickupCity: e.target.value })}>{cities.map((city) => <NativeSelectOption key={city}>{city}</NativeSelectOption>)}</NativeSelect></FormField><FormField label="Return city"><NativeSelect className="w-full" value={form.returnCity} onChange={(e) => setForm({ ...form, returnCity: e.target.value })}>{cities.map((city) => <NativeSelectOption key={city}>{city}</NativeSelectOption>)}</NativeSelect></FormField></div><div className="mt-6 rounded-2xl bg-[#f5f5f7] p-5"><div className="flex justify-between text-sm text-black/55"><span>{days} days × {currency(vehicle.dailyRate)}</span><span>{currency(total)}</span></div><div className="my-4 h-px bg-black/[.07]" /><div className="flex items-end justify-between"><span className="font-medium">Total cost</span><strong className="text-2xl">{currency(total)}</strong></div></div><div className="mt-5 flex items-center gap-2 text-xs text-black/45"><ShieldCheck className="size-4 text-emerald-600" /> Demo booking — no payment will be processed.</div></div><DialogFooter className="rounded-b-[28px] px-7"><Button type="submit" className="h-11 rounded-full bg-[#0071e3] px-6 text-white hover:bg-[#0077ed]">Confirm booking</Button></DialogFooter></form></DialogContent></Dialog>;
+  const submit = (e: FormEvent) => { e.preventDefault(); localStorage.setItem(CHECKOUT_KEY, JSON.stringify({ ...form, customer: user?.name || form.customer, email: user?.email || form.email, vehicle: { id: vehicle.id, brand: vehicle.brand, model: vehicle.model, image: vehicle.image, dailyRate: vehicle.dailyRate }, days, totalCost: total })); window.location.href = user ? '/checkout' : '/login?returnTo=/checkout'; };
+  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="max-h-[92vh] overflow-y-auto rounded-[28px] p-0 sm:max-w-xl"><form onSubmit={submit}><div className="p-7 sm:p-8"><DialogHeader><DialogTitle className="text-2xl font-semibold tracking-tight">Complete your booking</DialogTitle><DialogDescription>{vehicle.brand} {vehicle.model} · {currency(vehicle.dailyRate)} per day</DialogDescription></DialogHeader><div className="mt-7 grid gap-4 sm:grid-cols-2"><FormField label="Pick-up date"><Input required type="date" value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} /></FormField><FormField label="Return date"><Input required type="date" min={form.startDate} value={form.endDate} onChange={(e) => setForm({ ...form, endDate: e.target.value })} /></FormField><FormField label="Pick-up city"><NativeSelect className="w-full" value={form.pickupCity} onChange={(e) => setForm({ ...form, pickupCity: e.target.value })}>{cities.map((city) => <NativeSelectOption key={city}>{city}</NativeSelectOption>)}</NativeSelect></FormField><FormField label="Return city"><NativeSelect className="w-full" value={form.returnCity} onChange={(e) => setForm({ ...form, returnCity: e.target.value })}>{cities.map((city) => <NativeSelectOption key={city}>{city}</NativeSelectOption>)}</NativeSelect></FormField></div><div className="mt-6 rounded-2xl bg-[#f5f5f7] p-5"><div className="flex justify-between text-sm text-black/55"><span>{days} days × {currency(vehicle.dailyRate)}</span><span>{currency(total)}</span></div><div className="my-4 h-px bg-black/[.07]" /><div className="flex items-end justify-between"><span className="font-medium">Total cost</span><strong className="text-2xl">{currency(total)}</strong></div></div><div className="mt-5 flex items-center gap-2 text-xs text-black/45"><ShieldCheck className="size-4 text-emerald-600" /> Demo checkout — no real payment will be processed.</div></div><DialogFooter className="rounded-b-[28px] px-7"><Button type="submit" className="h-11 rounded-full bg-[#0071e3] px-6 text-white hover:bg-[#0077ed]">Continue to checkout <ArrowRight /></Button></DialogFooter></form></DialogContent></Dialog>;
 }
 
 function FormField({ label, children }: { label: string; children: React.ReactNode }) { return <label><span className="mb-2 block text-xs font-medium text-black/55">{label}</span>{children}</label>; }

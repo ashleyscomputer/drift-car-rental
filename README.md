@@ -16,7 +16,7 @@
 
 ## Overview
 
-Drift is a full-stack university assignment prototype that makes browsing and booking a rental car feel calm, fast and premium. It combines a responsive customer catalogue, an operations dashboard, in-memory API routes and an on-device Hugging Face assistant—without requiring login, Firebase or a permanent database.
+Drift is a full-stack university assignment prototype that makes browsing and booking a rental car feel calm, fast and premium. It combines a responsive customer catalogue, local-only demo authentication, a simulated checkout, an operations dashboard, in-memory API routes and an on-device Hugging Face assistant—without requiring Firebase or a permanent database.
 
 The catalogue contains **40 vehicles** across value, comfort and premium tiers, with four images per vehicle and market-aligned indicative South African daily rates.
 
@@ -27,6 +27,8 @@ The catalogue contains **40 vehicles** across value, comfort and premium tiers, 
 - Brand, model, type, year, transmission, feature and rate filtering
 - Four-image vehicle gallery and detailed specifications
 - Date- and location-based demonstration booking flow
+- Local-only demo registration, email sign-in and simulated Google sign-in
+- Card, Apple Pay and Google Pay payment simulations with animated confirmation
 - Customer and admin experiences in one application
 - Fleet, booking, customer, payment and reporting dashboards
 - Hugging Face Transformers.js chatbot for app help and general knowledge
