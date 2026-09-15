@@ -69,6 +69,7 @@ export default function RentalApp() {
   useEffect(() => { if (!toast) return; const timeout = setTimeout(() => setToast(''), 2800); return () => clearTimeout(timeout); }, [toast]);
 
   const brands = [...new Set(vehicles.map((v) => v.brand))];
+  const years = [...new Set(vehicles.map((v) => v.year))].sort((a, b) => b - a).map(String);
   const models = vehicles.filter((v) => filters.brand === 'All' || v.brand === filters.brand).map((v) => v.model);
   const filtered = vehicles.filter((v) =>
     (filters.brand === 'All' || v.brand === filters.brand) &&
@@ -95,7 +96,7 @@ export default function RentalApp() {
             <p className="mb-3 text-xs font-semibold tracking-[.18em] text-[#0071e3]">EFFORTLESS CAR RENTAL</p>
             <h1 className="max-w-xl text-5xl font-semibold leading-[.96] tracking-[-.055em] sm:text-6xl">Find your next drive.</h1>
             <p className="mt-5 max-w-lg text-lg leading-7 text-black/60">Choose the right car, see the full price and book in minutes. No queues. No surprises.</p>
-            <a href="#browse" className="mt-7 inline-flex w-fit items-center gap-2 rounded-full bg-[#0071e3] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#0077ed]">Browse vehicles <ArrowRight className="size-4" /></a>
+            <div className="mt-7 flex flex-wrap gap-3"><a href="#browse" className="inline-flex w-fit items-center gap-2 rounded-full bg-[#0071e3] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#0077ed]">Browse vehicles <ArrowRight className="size-4" /></a><a href="/experience" className="inline-flex w-fit items-center gap-2 rounded-full border border-black/10 bg-white/70 px-6 py-3 text-sm font-medium text-black backdrop-blur transition hover:bg-white"><Sparkles className="size-4"/>Explore in 3D</a></div>
           </div>
         </div>
       </section>
@@ -107,7 +108,7 @@ export default function RentalApp() {
             <FilterSelect label="Brand" value={filters.brand} values={['All', ...brands]} onChange={(brand) => setFilters({ ...filters, brand, model: 'All' })} />
             <FilterSelect label="Model" value={filters.model} values={['All', ...models]} onChange={(model) => setFilters({ ...filters, model })} />
             <FilterSelect label="Vehicle type" value={filters.type} values={['All', 'Hatchback', 'Sedan', 'SUV', 'Bakkie', 'Van']} onChange={(type) => setFilters({ ...filters, type })} />
-            <FilterSelect label="Year" value={filters.year} values={['All', '2025', '2024']} onChange={(year) => setFilters({ ...filters, year })} />
+            <FilterSelect label="Year" value={filters.year} values={['All', ...years]} onChange={(year) => setFilters({ ...filters, year })} />
             <FilterSelect label="Transmission" value={filters.transmission} values={['All', 'Automatic', 'Manual']} onChange={(transmission) => setFilters({ ...filters, transmission })} />
             <label className="rounded-2xl bg-[#f5f5f7] px-4 py-3"><span className="block text-[11px] text-black/45">Maximum daily rate</span><span className="mt-1 block text-sm font-medium">{currency(Number(filters.maxPrice))}</span><input className="mt-2 w-full accent-[#0071e3]" type="range" min="300" max="4500" step="50" value={filters.maxPrice} onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })} /></label>
             <Button variant="secondary" className="h-auto min-h-16 rounded-2xl" onClick={() => setFilters({ brand: 'All', model: 'All', type: 'All', year: 'All', maxPrice: '4500', transmission: 'All', features: [] })}><X /> Clear filters</Button>

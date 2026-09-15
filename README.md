@@ -18,12 +18,14 @@
 
 Drift is a full-stack university assignment prototype that makes browsing and booking a rental car feel calm, fast and premium. It combines a responsive customer catalogue, local-only demo authentication, a simulated checkout, an operations dashboard, in-memory API routes and an on-device Hugging Face assistant—without requiring Firebase or a permanent database.
 
-The catalogue contains **40 vehicles** across value, comfort and premium tiers, with four images per vehicle and market-aligned indicative South African daily rates.
+The catalogue contains **70 vehicles** across value, comfort and premium tiers, with image galleries and market-aligned indicative South African daily rates.
 
 ## Highlights
 
 - Responsive Apple-inspired interface with glass surfaces and focused typography
-- 40-car catalogue spanning hatchbacks, sedans, SUVs, bakkies and a luxury van
+- 70-car catalogue spanning hatchbacks, sedans, SUVs, bakkies and passenger vans
+- Scroll-driven 3D Drift Concept with articulated door, window, camera, paint and upholstery previews
+- Scroll-driven 3D Drift Concept with articulated door, window, camera, paint and upholstery previews
 - Brand, model, type, year, transmission, feature and rate filtering
 - Four-image vehicle gallery and detailed specifications
 - Date- and location-based demonstration booking flow
