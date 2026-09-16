@@ -12,7 +12,9 @@
     "node": ">=22.13.0"
   },
   "scripts": {
+    "predev": "node scripts/prepare-cinematic-assets.mjs",
     "dev": "vinext dev",
+    "prebuild": "node scripts/prepare-cinematic-assets.mjs",
     "build": "vinext build",
     "start": "wrangler dev --config dist/server/wrangler.json",
     "lint": "oxlint",

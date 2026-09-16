@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import { ArrowDown, ArrowRight, CarFront, Sparkles } from 'lucide-react';
+import { ArrowRight, CarFront } from 'lucide-react';
 import type { Vehicle } from '@/lib/store';
 
 const FALLBACK_VEHICLE: Pick<Vehicle, 'brand' | 'model' | 'year' | 'type' | 'dailyRate' | 'transmission' | 'doors' | 'colour' | 'status' | 'features'> = {
@@ -18,26 +18,23 @@ const FALLBACK_VEHICLE: Pick<Vehicle, 'brand' | 'model' | 'year' | 'type' | 'dai
   features: ['4x4', 'AMG performance', 'Leather seats', 'Burmester audio'],
 };
 
-const G_WAGON_IMAGES = [
-  'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mercedes-AMG%20W463%20G%2063%20Obsidian%20Black%20(17).jpg?width=2200',
-  'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mercedes-AMG%20W463%20G%2063%20Obsidian%20Black%20(22).jpg?width=2200',
-  'https://commons.wikimedia.org/wiki/Special:Redirect/file/Mercedes-AMG%20W463%20G%2063%20Obsidian%20Black%20(23).jpg?width=2200',
+const G63_IMAGES = [
+  '/cinematic/g63-01.jpg',
+  '/cinematic/g63-02.jpg',
+  '/cinematic/g63-03.jpg',
 ];
-
-const G_WAGON_SOURCE = 'https://commons.wikimedia.org/wiki/Category:Mercedes-AMG_G_63_(2018%E2%80%932024)';
-const SLS_CLOSED = 'https://commons.wikimedia.org/wiki/Special:Redirect/file/2010%20Mercedes-Benz%20SLS%20AMG%20(C%20197)%20Blackbird%20coupe%20(2010-10-16)%2002.jpg?width=2200';
-const SLS_OPEN = 'https://commons.wikimedia.org/wiki/Special:Redirect/file/Matte%20Black%20Mercedes%20SLS%20With%20Doors%20Up%20(12157179396).jpg?width=2200';
-const SLS_SOURCE_CLOSED = 'https://commons.wikimedia.org/wiki/File:2010_Mercedes-Benz_SLS_AMG_(C_197)_Blackbird_coupe_(2010-10-16)_02.jpg';
-const SLS_SOURCE_OPEN = 'https://commons.wikimedia.org/wiki/File:Matte_Black_Mercedes_SLS_With_Doors_Up_(12157179396).jpg';
+const SLS_IMAGES = ['/cinematic/sls-closed.jpg', '/cinematic/sls-open.jpg'];
+const FERRARI_IMAGES = [
+  '/cinematic/ferrari-01.jpg',
+  '/cinematic/ferrari-02.jpg',
+  '/cinematic/ferrari-03.jpg',
+];
 
 const clamp = (value: number, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 const mix = (from: number, to: number, amount: number) => from + (to - from) * clamp(amount);
 const range = (value: number, start: number, end: number) => clamp((value - start) / Math.max(end - start, 0.0001));
-const fadeWindow = (value: number, startIn: number, endIn: number, startOut: number, endOut: number) => {
-  const fadeIn = range(value, startIn, endIn);
-  const fadeOut = 1 - range(value, startOut, endOut);
-  return Math.min(fadeIn, fadeOut);
-};
+const fadeWindow = (value: number, startIn: number, endIn: number, startOut: number, endOut: number) =>
+  Math.min(range(value, startIn, endIn), 1 - range(value, startOut, endOut));
 const currency = (value: number) => `R${value.toLocaleString('en-ZA')}`;
 
 function useMediaQuery(query: string) {
@@ -64,7 +61,6 @@ export default function DriftPhase2Home() {
 
   useEffect(() => {
     let cancelled = false;
-
     const loadHeroVehicle = async () => {
       try {
         const response = await fetch('/api/vehicles');
@@ -76,10 +72,9 @@ export default function DriftPhase2Home() {
         );
         if (g63) setHeroVehicle(g63);
       } catch {
-        // The cinematic fallback mirrors the seeded G63 so the hero remains usable offline.
+        // Keep the seeded G63 fallback so the cinematic layer never blocks the rental product.
       }
     };
-
     void loadHeroVehicle();
     return () => { cancelled = true; };
   }, []);
@@ -93,12 +88,10 @@ export default function DriftPhase2Home() {
       const distance = Math.max(stage.offsetHeight - window.innerHeight, 1);
       setProgress(clamp(-rect.top / distance));
     };
-
     const schedule = () => {
       if (frameRef.current !== null) return;
       frameRef.current = window.requestAnimationFrame(update);
     };
-
     frameRef.current = window.requestAnimationFrame(update);
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', schedule);
@@ -111,14 +104,13 @@ export default function DriftPhase2Home() {
 
   useEffect(() => {
     if (!finePointer || reducedMotion) return;
-
     const move = (event: PointerEvent) => {
-      const x = (event.clientX / Math.max(window.innerWidth, 1) - 0.5) * 2;
-      const y = (event.clientY / Math.max(window.innerHeight, 1) - 0.5) * 2;
-      setPointer({ x: clamp(x, -1, 1), y: clamp(y, -1, 1) });
+      setPointer({
+        x: clamp((event.clientX / Math.max(window.innerWidth, 1) - 0.5) * 2, -1, 1),
+        y: clamp((event.clientY / Math.max(window.innerHeight, 1) - 0.5) * 2, -1, 1),
+      });
     };
     const leave = () => setPointer({ x: 0, y: 0 });
-
     window.addEventListener('pointermove', move, { passive: true });
     document.documentElement.addEventListener('mouseleave', leave);
     return () => {
@@ -127,270 +119,251 @@ export default function DriftPhase2Home() {
     };
   }, [finePointer, reducedMotion]);
 
+  const p = reducedMotion ? clamp(progress * 1.02) : progress;
+  const g = range(p, 0, 0.335);
+  const sls = range(p, 0.30, 0.655);
+  const ferrari = range(p, 0.615, 0.915);
+  const handoff = range(p, 0.885, 0.995);
   const pointerX = finePointer && !reducedMotion ? pointer.x : 0;
   const pointerY = finePointer && !reducedMotion ? pointer.y : 0;
-  const p = reducedMotion ? clamp(progress * 1.03) : progress;
-  const gProgress = range(p, 0, 0.47);
-  const slsProgress = range(p, 0.45, 0.9);
-  const handoff = range(p, 0.88, 0.99);
 
-  const gOpacity = 1 - range(p, 0.42, 0.51);
-  const gCopyOpacity = (1 - range(gProgress, 0.19, 0.34)) * gOpacity;
-  const gSpecOpacity = fadeWindow(gProgress, 0.31, 0.42, 0.72, 0.88) * gOpacity;
-  const gWordmarkOpacity = mix(0.055, 0.135, range(gProgress, 0.05, 0.48)) * gOpacity;
-  const gCarScale = reducedMotion ? 1 : mix(1.03, 1.16, range(gProgress, 0.06, 0.66));
-  const gCarX = reducedMotion ? 0 : mix(-36, 66, range(gProgress, 0.12, 0.76)) + pointerX * 7;
-  const gCarY = reducedMotion ? 0 : mix(34, -8, range(gProgress, 0.08, 0.74)) + pointerY * 7;
-  const gCarRotate = reducedMotion ? 0 : mix(-0.45, 0.55, range(gProgress, 0.18, 0.78));
-  const gLightX = reducedMotion ? 0 : mix(-52, 108, gProgress) + pointerX * 14;
-  const gImageOpacities = [
-    1 - range(gProgress, 0.34, 0.48),
-    Math.min(range(gProgress, 0.34, 0.48), 1 - range(gProgress, 0.61, 0.73)),
-    range(gProgress, 0.61, 0.73),
-  ];
-
-  const slsOpacity = range(p, 0.45, 0.53) * (1 - range(p, 0.86, 0.92));
-  const slsCopyOpacity = (1 - range(slsProgress, 0.24, 0.38)) * slsOpacity;
-  const doorProgress = range(slsProgress, 0.37, 0.63);
-  const slsSpecOpacity = fadeWindow(slsProgress, 0.58, 0.7, 0.88, 0.98) * slsOpacity;
-  const slsClosedOpacity = 1 - range(doorProgress, 0.2, 0.78);
-  const slsOpenOpacity = range(doorProgress, 0.2, 0.78);
-  const slsScale = reducedMotion ? 1 : mix(0.96, 1.075, range(slsProgress, 0.05, 0.7));
-  const slsX = reducedMotion ? 0 : mix(28, -26, range(slsProgress, 0.06, 0.72)) + pointerX * 5;
-  const slsY = reducedMotion ? 0 : mix(26, -4, range(slsProgress, 0.08, 0.72)) + pointerY * 5;
-  const wingGlow = reducedMotion ? 0.2 : doorProgress * slsOpacity;
-  const showSlsAssets = p > 0.36;
+  const gOpacity = 1 - range(p, 0.285, 0.345);
+  const slsOpacity = range(p, 0.292, 0.335) * (1 - range(p, 0.602, 0.662));
+  const ferrariOpacity = range(p, 0.61, 0.655) * (1 - range(p, 0.872, 0.925));
+  const showSlsAssets = p > 0.245;
+  const showFerrariAssets = p > 0.54;
 
   const allWheelDrive = useMemo(
-    () => heroVehicle.features.find((feature) => /4x4|all-wheel|awd/i.test(feature)) ?? 'All-wheel drive',
+    () => heroVehicle.features.find((feature) => /4x4|all-wheel|awd/i.test(feature)) ?? '4MATIC / AWD',
     [heroVehicle],
   );
 
-  const gSpecs = [
-    'MERCEDES-AMG G 63',
-    heroVehicle.transmission.toUpperCase(),
-    'V8 BITURBO',
-    allWheelDrive.toUpperCase(),
-    `${heroVehicle.doors} DOORS`,
-    `${currency(heroVehicle.dailyRate)} / DAY`,
+  const chapter = p < 0.305 ? 1 : p < 0.625 ? 2 : p < 0.89 ? 3 : 4;
+  const scrollToChapter = (target: number) => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const top = window.scrollY + stage.getBoundingClientRect().top;
+    const distance = Math.max(stage.offsetHeight - window.innerHeight, 1);
+    window.scrollTo({ top: top + target * distance, behavior: reducedMotion ? 'auto' : 'smooth' });
+  };
+
+  const gAngleOpacity = [
+    1 - range(g, 0.31, 0.44),
+    fadeWindow(g, 0.29, 0.42, 0.57, 0.69),
+    range(g, 0.59, 0.72),
   ];
-  const slsSpecs = ['6.2L V8', 'GULLWING DOORS', 'REAR-WHEEL DRIVE', '7-SPEED DCT', 'DRIFT EXPERIENCE'];
-  const chapter = p < 0.47 ? ['01', 'G 63'] : p < 0.9 ? ['02', 'SLS AMG'] : ['03', 'FLEET'];
+  const gCopy = 1 - range(g, 0.29, 0.42);
+  const gSpecs = fadeWindow(g, 0.47, 0.58, 0.84, 0.96);
+  const gPrice = range(g, 0.61, 0.72) * (1 - range(g, 0.9, 0.99));
+
+  const door = range(sls, 0.36, 0.64);
+  const slsCopy = fadeWindow(sls, 0.1, 0.2, 0.51, 0.63);
+  const slsOpen = range(door, 0.08, 0.9);
+  const slsSpecs = range(sls, 0.64, 0.76) * (1 - range(sls, 0.91, 1));
+
+  const ferrariAngle = [
+    1 - range(ferrari, 0.32, 0.45),
+    fadeWindow(ferrari, 0.29, 0.42, 0.58, 0.69),
+    range(ferrari, 0.6, 0.73),
+  ];
+  const ferrariCopy = fadeWindow(ferrari, 0.1, 0.2, 0.47, 0.58);
+  const ferrariSpecs = range(ferrari, 0.62, 0.74) * (1 - range(ferrari, 0.92, 1));
 
   return (
-    <section ref={stageRef} id="drift-cinematic-home" className="relative h-[610svh] bg-[#050607] text-white max-md:h-[520svh]">
-      <link rel="preload" as="image" href={G_WAGON_IMAGES[0]} />
+    <section ref={stageRef} id="drift-cinematic-home" className="relative h-[380svh] bg-[#070809] text-white max-md:h-[330svh]">
+      <link rel="preload" as="image" href={G63_IMAGES[0]} />
       <style>{`
-        .drift-cinematic-grid{background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);background-size:86px 86px;mask-image:linear-gradient(to bottom,black,transparent 92%)}
-        .drift-light-sweep{animation:driftLightSweep 8.6s cubic-bezier(.45,0,.55,1) infinite}
-        .drift-film{background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.95' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");mix-blend-mode:soft-light}
-        @keyframes driftLightSweep{0%,34%{transform:translate3d(-125%,0,0)}72%,100%{transform:translate3d(125%,0,0)}}
-        @media(max-width:640px){.drift-cinematic-grid{background-size:54px 54px}.drift-light-sweep{animation-duration:11s}.drift-film{opacity:.08!important}}
-        @media(prefers-reduced-motion:reduce){.drift-light-sweep{animation:none!important}.drift-scroll-cue{display:none!important}}
+        .drift-grain{background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");mix-blend-mode:soft-light}
+        .drift-hairline{background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent)}
+        .drift-nav-button{position:relative}.drift-nav-button:after{content:'';position:absolute;left:0;right:100%;bottom:-7px;height:1px;background:white;transition:right .35s cubic-bezier(.22,1,.36,1)}.drift-nav-button:hover:after,.drift-nav-button:focus-visible:after{right:0}
+        .drift-image{transition:filter .35s ease;will-change:transform,opacity,clip-path}
+        @media(max-width:767px){.drift-grain{opacity:.06!important}.drift-image{filter:saturate(.78) contrast(1.08) brightness(.72)!important}}
+        @media(prefers-reduced-motion:reduce){.drift-image{transform:none!important}.drift-motion-only{display:none!important}}
       `}</style>
 
-      <div className="sticky top-0 isolate h-[100svh] overflow-hidden bg-[#050607]">
-        <div aria-hidden="true" className="drift-cinematic-grid absolute inset-0 -z-50 opacity-50" />
-        <div aria-hidden="true" className="drift-film pointer-events-none absolute inset-0 z-[60] opacity-[.12]" />
+      <div className="sticky top-0 isolate h-[100svh] overflow-hidden bg-[#070809]">
+        <div aria-hidden="true" className="absolute inset-0 -z-50 bg-[radial-gradient(circle_at_72%_50%,rgba(119,132,139,.16),transparent_34%),linear-gradient(180deg,#070809,#0a0b0c_67%,#070809)]" />
+        <div aria-hidden="true" className="drift-grain pointer-events-none absolute inset-0 z-[70] opacity-[.10]" />
 
-        <div className="absolute inset-x-0 top-0 z-50">
-          <header className="mx-auto grid h-[76px] w-[min(100%-40px,1440px)] grid-cols-[1fr_auto_1fr] items-center gap-8 border-b border-white/10 max-md:w-[calc(100%-30px)] max-md:grid-cols-[1fr_auto]">
-            <Link href="#drift-cinematic-home" className="flex w-fit items-center gap-3 text-xs font-extrabold tracking-[.22em]">
-              <span className="grid size-9 place-items-center rounded-full bg-white text-black"><CarFront className="size-4" /></span>
+        <header className="absolute inset-x-0 top-0 z-[80]">
+          <div className="mx-auto grid h-[72px] w-[min(100%-36px,1440px)] grid-cols-[1fr_auto_1fr] items-center gap-8 border-b border-white/10 max-md:grid-cols-[1fr_auto]">
+            <button onClick={() => scrollToChapter(0)} className="flex w-fit items-center gap-3 text-xs font-black tracking-[.24em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white" aria-label="Back to Drift opening">
+              <span className="grid size-8 place-items-center rounded-full border border-white/18"><CarFront className="size-3.5" /></span>
               DRIFT
-            </Link>
-            <nav className="flex items-center gap-9 text-[11px] font-semibold uppercase tracking-[.16em] text-white/48 max-md:hidden" aria-label="Primary navigation">
-              <Link className="transition-colors hover:text-white focus-visible:text-white" href="#browse">Fleet</Link>
-              <Link className="transition-colors hover:text-white focus-visible:text-white" href="/experience">Experience</Link>
+            </button>
+            <nav className="flex items-center gap-8 text-[10px] font-semibold uppercase tracking-[.18em] text-white/48 max-md:hidden" aria-label="Cinematic chapters">
+              <button className={`drift-nav-button ${chapter === 1 ? 'text-white' : 'hover:text-white'}`} onClick={() => scrollToChapter(0.03)}>01 G63</button>
+              <button className={`drift-nav-button ${chapter === 2 ? 'text-white' : 'hover:text-white'}`} onClick={() => scrollToChapter(0.32)}>02 SLS</button>
+              <button className={`drift-nav-button ${chapter === 3 ? 'text-white' : 'hover:text-white'}`} onClick={() => scrollToChapter(0.64)}>03 812</button>
+              <button className="drift-nav-button hover:text-white" onClick={() => scrollToChapter(0.95)}>Fleet</button>
             </nav>
             <div className="flex items-center justify-self-end gap-4">
-              <Link href="/login" className="text-xs font-semibold text-white/55 transition hover:text-white max-sm:hidden">Sign in</Link>
-              <Link href="#browse" className="inline-flex min-h-11 items-center gap-2 rounded-full border border-white/15 bg-white/[.07] px-4 py-2 text-xs font-semibold backdrop-blur-xl transition hover:bg-white/12 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-                Find a car <ArrowRight className="size-3.5" />
-              </Link>
+              <span className="hidden text-[9px] font-semibold uppercase tracking-[.18em] text-white/34 lg:block">South Africa · ZAR</span>
+              <Link href="/login" className="text-[11px] font-semibold uppercase tracking-[.13em] text-white/58 transition hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Sign in</Link>
             </div>
-          </header>
+          </div>
+        </header>
+
+        <div className="absolute left-1/2 top-[50%] z-[75] hidden -translate-y-1/2 xl:block" style={{ left: 'calc(100% - 28px)', opacity: 1 - handoff }}>
+          <div className="flex items-center gap-3 text-[9px] font-semibold tracking-[.18em] text-white/34 [writing-mode:vertical-rl]">
+            <span>{String(Math.min(chapter, 3)).padStart(2, '0')} / 03</span>
+            <span className="h-12 w-px bg-white/16" />
+            <span>{chapter === 1 ? 'G 63' : chapter === 2 ? 'SLS AMG' : chapter === 3 ? '812 SUPERFAST' : 'FLEET'}</span>
+          </div>
         </div>
 
         <div className="absolute inset-0" style={{ opacity: gOpacity }} aria-hidden={gOpacity < 0.02}>
-          <div
-            aria-hidden="true"
-            className="absolute left-[60%] top-[48%] -z-40 aspect-square w-[min(94vw,1080px)] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(170,185,195,.23)_0%,rgba(69,82,91,.12)_40%,transparent_70%)] blur-2xl max-md:left-[72%]"
-            style={{ transform: `translate3d(calc(-50% + ${gLightX}px), -50%, 0)` }}
-          />
-          <div aria-hidden="true" className="absolute inset-0 -z-30 bg-[linear-gradient(90deg,rgba(5,6,7,.98)_0%,rgba(5,6,7,.88)_25%,rgba(5,6,7,.24)_61%,rgba(5,6,7,.58)_100%)] max-md:bg-[linear-gradient(180deg,rgba(5,6,7,.98)_0%,rgba(5,6,7,.72)_42%,rgba(5,6,7,.42)_74%,rgba(5,6,7,.96)_100%)]" />
-          <div
-            aria-hidden="true"
-            className="absolute left-1/2 top-[49%] -z-20 -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap text-[clamp(8rem,17vw,18rem)] font-black leading-none tracking-[-.09em] text-white max-sm:text-[32vw]"
-            style={{ opacity: gWordmarkOpacity, transform: `translate3d(calc(-50% + ${reducedMotion ? 0 : mix(-10, 20, gProgress) + pointerX * 4}px), -50%, 0)` }}
-          >
-            DRIFT
+          <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(112deg,rgba(4,5,6,.99)_0%,rgba(8,10,11,.9)_31%,rgba(13,16,18,.24)_67%,rgba(4,5,6,.88)_100%)]" />
+          <div aria-hidden="true" className="absolute right-[-12vw] top-[12vh] h-[78vh] w-[62vw] bg-[linear-gradient(115deg,transparent_15%,rgba(196,211,219,.1)_48%,transparent_75%)] blur-3xl" style={{ transform: `translate3d(${pointerX * 16}px,${pointerY * 10}px,0) rotate(-8deg)` }} />
+          <div aria-hidden="true" className="absolute left-[33%] top-[46%] z-0 -translate-y-1/2 whitespace-nowrap text-[clamp(9rem,23vw,22rem)] font-black leading-none tracking-[-.09em] text-white/[.055] max-md:left-3 max-md:top-[40%] max-md:text-[34vw]" style={{ transform: `translate3d(${reducedMotion ? 0 : mix(-18, 22, g)}px,-50%,0)` }}>G 63</div>
+
+          <div className="absolute left-[max(20px,calc((100vw-1440px)/2))] top-[clamp(8.5rem,18vh,12rem)] z-30 w-[min(40vw,520px)] max-md:left-5 max-md:right-5 max-md:top-[6.9rem] max-md:w-auto" style={{ opacity: gCopy, transform: `translate3d(0,${reducedMotion ? 0 : mix(16, -10, range(g, 0.05, 0.36))}px,0)` }}>
+            <Eyebrow>DRIFT / 01 · G 63</Eyebrow>
+            <h1 className="mt-5 text-[clamp(4rem,8.5vw,8.4rem)] font-semibold leading-[.78] tracking-[-.075em] max-md:text-[clamp(3.5rem,17vw,5.7rem)]">Built to <span className="text-white/34">arrive.</span></h1>
+            <p className="mt-6 max-w-sm text-sm leading-6 text-white/50">Architectural presence for South African roads. The rate below comes from the live Drift fleet, not campaign copy.</p>
           </div>
 
-          <div
-            className="absolute left-[max(20px,calc((100vw-1440px)/2))] top-[clamp(8.5rem,18vh,12rem)] z-20 max-w-[700px] max-md:left-5 max-md:right-5 max-md:top-[7.5rem]"
-            style={{ opacity: gCopyOpacity, transform: `translate3d(0, ${reducedMotion ? 0 : mix(0, -24, range(gProgress, 0.12, 0.34))}px, 0)` }}
-          >
-            <p className="flex items-center gap-3 text-[10px] font-bold tracking-[.24em] text-white/48"><span className="h-px w-9 bg-white/55" /> CHAPTER 01 · AMG PRESENCE</p>
-            <h1 className="mt-5 text-[clamp(4.3rem,9.7vw,9.7rem)] font-semibold leading-[.77] tracking-[-.074em] max-sm:text-[clamp(3.7rem,18vw,5.6rem)]">
-              <span className="block">Move</span>
-              <span className="ml-[clamp(0rem,7vw,7rem)] block text-white/36 max-sm:ml-0">different.</span>
-            </h1>
-            <p className="mt-[clamp(1.7rem,4vh,3.2rem)] max-w-md text-[clamp(.92rem,1.15vw,1.05rem)] leading-7 text-white/56">Choose the car. See the price. Own the moment.</p>
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="#browse" className="inline-flex min-h-12 items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-                Explore the fleet <ArrowRight className="size-4" />
-              </Link>
-              <Link href="/experience" className="inline-flex min-h-12 items-center gap-2 rounded-full border border-white/14 bg-black/20 px-5 py-3 text-sm font-semibold text-white/80 backdrop-blur-xl transition hover:bg-white/10 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white">
-                <Sparkles className="size-4" /> Drift Experience
-              </Link>
-            </div>
-          </div>
-
-          <div
-            className="pointer-events-none absolute inset-x-0 bottom-[2vh] z-10 mx-auto h-[74%] w-[min(96vw,1380px)] max-md:bottom-[5vh] max-md:h-[59%] max-md:w-[138vw]"
-            style={{ transform: `translate3d(${gCarX}px, ${gCarY}px, 0) scale(${gCarScale}) rotate(${gCarRotate}deg)` }}
-            role="img"
-            aria-label={`${heroVehicle.year} ${heroVehicle.brand} ${heroVehicle.model}`}
-          >
-            <div aria-hidden="true" className="absolute bottom-[8%] left-[16%] right-[5%] h-[12%] rounded-[50%] bg-black/85 blur-3xl" />
-            {G_WAGON_IMAGES.map((src, index) => (
-              <div
+          <figure className="pointer-events-none absolute bottom-[1vh] right-[-4vw] z-10 h-[78vh] w-[74vw] max-md:bottom-[13vh] max-md:right-[-33vw] max-md:h-[54vh] max-md:w-[132vw]" aria-label={`${heroVehicle.year} ${heroVehicle.brand} ${heroVehicle.model}`}>
+            <div aria-hidden="true" className="absolute bottom-[8%] left-[14%] right-[8%] h-[13%] rounded-[50%] bg-black/80 blur-3xl" />
+            {G63_IMAGES.map((src, index) => (
+              <img
                 key={src}
+                src={src}
+                alt=""
                 aria-hidden="true"
-                className="absolute inset-0 bg-cover bg-center [filter:saturate(.7)_contrast(1.12)_brightness(.67)] [mask-image:linear-gradient(90deg,transparent_0%,rgba(0,0,0,.82)_8%,black_23%,black_92%,transparent_100%)] max-md:bg-[position:52%_center]"
-                style={{ backgroundImage: `url("${src}")`, opacity: gImageOpacities[index] }}
+                loading={index === 0 ? 'eager' : 'lazy'}
+                className="drift-image absolute inset-0 size-full object-cover [filter:saturate(.72)_contrast(1.13)_brightness(.67)]"
+                style={{
+                  opacity: gAngleOpacity[index],
+                  objectPosition: index === 0 ? '56% center' : index === 1 ? '51% center' : '47% center',
+                  transform: `translate3d(${mix(22, -18, g) + pointerX * 5}px,${mix(18, -4, g) + pointerY * 4}px,0) scale(${mix(1.03, 1.11, g)})`,
+                  clipPath: index === 1 ? `polygon(${mix(100, 0, range(g, .3, .48))}% 0,100% 0,100% 100%,${mix(82, 0, range(g, .3, .48))}% 100%)` : undefined,
+                }}
               />
             ))}
-            <div aria-hidden="true" className="drift-light-sweep absolute inset-0 bg-[linear-gradient(112deg,transparent_34%,rgba(255,255,255,.11)_48%,transparent_61%)] mix-blend-screen" />
+            <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(112deg,transparent_35%,rgba(235,246,250,.12)_49%,transparent_63%)] mix-blend-screen" style={{ transform: `translate3d(${mix(-72, 68, g) + pointerX * 10}%,0,0)` }} />
+          </figure>
+
+          <div className="absolute right-[max(26px,calc((100vw-1440px)/2))] top-[31%] z-40 hidden w-[240px] space-y-7 lg:block" style={{ opacity: gSpecs }}>
+            <SpecLine label="POWERTRAIN" value="V8 BITURBO" />
+            <SpecLine label="TRACTION" value={allWheelDrive.toUpperCase()} />
+            <SpecLine label="TRANSMISSION" value={heroVehicle.transmission.toUpperCase()} />
+            <SpecLine label="BODY" value={`${heroVehicle.doors} DOORS`} />
           </div>
 
-          <div className="absolute inset-0 z-20 hidden lg:block" style={{ opacity: gSpecOpacity }} aria-label={`${heroVehicle.brand} ${heroVehicle.model} specifications`}>
-            <SpecMarker className="left-[7%] top-[43%]" align="left" label={gSpecs[0]} emphasis />
-            <SpecMarker className="left-[12%] top-[67%]" align="left" label={gSpecs[1]} />
-            <SpecMarker className="right-[7%] top-[38%]" align="right" label={gSpecs[2]} />
-            <SpecMarker className="right-[10%] top-[57%]" align="right" label={gSpecs[3]} />
-            <SpecMarker className="right-[14%] top-[70%]" align="right" label={gSpecs[4]} />
-            <SpecMarker className="right-[7%] top-[80%]" align="right" label={gSpecs[5]} emphasis />
-          </div>
-
-          <div className="absolute inset-x-4 bottom-5 z-30 flex flex-wrap justify-center gap-2 lg:hidden" style={{ opacity: gSpecOpacity }}>
-            {gSpecs.slice(0, 5).map((spec) => <span key={spec} className="rounded-full border border-white/12 bg-black/48 px-3 py-2 text-[9px] font-semibold tracking-[.12em] text-white/72 backdrop-blur-lg">{spec}</span>)}
-            <span className="rounded-full bg-white px-3 py-2 text-[9px] font-bold tracking-[.12em] text-black">{gSpecs[5]}</span>
-          </div>
-
-          <div className="absolute bottom-4 left-5 z-40 max-w-[72vw] text-[9px] leading-4 text-white/22 max-sm:hidden">
-            G 63 showcase photography: <a className="underline decoration-white/20 underline-offset-2 hover:text-white/50" href={G_WAGON_SOURCE} target="_blank" rel="noreferrer">Damian B Oh / Wikimedia Commons, CC BY-SA 4.0</a>
+          <div className="absolute bottom-[7vh] left-[max(20px,calc((100vw-1440px)/2))] z-40 max-md:bottom-[5vh] max-md:left-5" style={{ opacity: gPrice, transform: `translate3d(0,${mix(16, 0, gPrice)}px,0)` }}>
+            <p className="text-[9px] font-bold uppercase tracking-[.2em] text-white/42">LIVE FLEET RATE</p>
+            <p className="mt-2 text-[clamp(2rem,3.3vw,3.8rem)] font-semibold tracking-[-.05em]">From {currency(heroVehicle.dailyRate)} <span className="text-lg font-medium text-white/42">/ day</span></p>
+            <Link href="#browse" className="mt-4 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[.13em] text-white/70 transition hover:gap-3 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Explore the fleet <ArrowRight className="size-3.5" /></Link>
           </div>
         </div>
 
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 z-[21] bg-[radial-gradient(circle_at_50%_48%,rgba(255,255,255,.08),transparent_28%),linear-gradient(115deg,#050607_8%,#161719_51%,#050607_92%)]"
-          style={{ opacity: fadeWindow(p, 0.43, 0.49, 0.5, 0.56) }}
-        />
+        <div aria-hidden="true" className="absolute inset-0 z-[32] bg-[#070809]" style={{ opacity: fadeWindow(p, 0.292, 0.316, 0.332, 0.352) }}>
+          <div className="absolute left-[-20%] right-[-20%] top-1/2 h-px bg-white/65 shadow-[0_0_44px_rgba(255,255,255,.55)]" style={{ transform: `translate3d(${mix(-38, 38, range(p, .292, .352))}%,0,0)` }} />
+        </div>
 
         <div className="absolute inset-0" style={{ opacity: slsOpacity }} aria-hidden={slsOpacity < 0.02}>
-          <div aria-hidden="true" className="absolute inset-0 -z-40 bg-[radial-gradient(circle_at_50%_58%,rgba(138,54,38,.18)_0%,rgba(42,24,21,.1)_34%,transparent_67%),linear-gradient(180deg,#050506,#0b0a0a_68%,#050506)]" />
-          <div aria-hidden="true" className="absolute inset-x-[12%] bottom-[15%] -z-30 h-px bg-gradient-to-r from-transparent via-white/24 to-transparent" />
-          <div aria-hidden="true" className="absolute inset-x-[18%] bottom-[8%] -z-30 h-[28%] rounded-[50%] bg-[radial-gradient(ellipse,rgba(255,255,255,.07),transparent_63%)] blur-2xl" />
+          <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_63%_68%,rgba(134,67,45,.18),transparent_32%),linear-gradient(180deg,#060607,#0a0909_70%,#050505)]" />
+          <div aria-hidden="true" className="absolute left-[15%] top-[49%] z-0 -translate-y-1/2 whitespace-nowrap text-[clamp(8rem,19vw,19rem)] font-black leading-none tracking-[-.09em] text-white/[.045] max-md:left-3 max-md:top-[41%] max-md:text-[29vw]">GULLWING</div>
 
-          <div
-            aria-hidden="true"
-            className="absolute left-1/2 top-[48%] -z-20 -translate-x-1/2 -translate-y-1/2 select-none whitespace-nowrap text-[clamp(7rem,15vw,15rem)] font-black leading-none tracking-[-.075em] text-white max-sm:text-[28vw]"
-            style={{ opacity: 0.055 * slsOpacity, transform: `translate3d(calc(-50% + ${reducedMotion ? 0 : pointerX * 3}px), -50%, 0)` }}
-          >
-            GULLWING
+          <div className="absolute left-[max(20px,calc((100vw-1440px)/2))] top-[clamp(8.5rem,18vh,12rem)] z-30 max-w-[650px] max-md:left-5 max-md:right-5 max-md:top-[6.9rem]" style={{ opacity: slsCopy }}>
+            <Eyebrow warm>DRIFT / 02 · SLS AMG</Eyebrow>
+            <p className="mt-5 text-[11px] font-semibold uppercase tracking-[.18em] text-white/48">Mercedes-Benz SLS AMG</p>
+            <h2 className="mt-3 text-[clamp(3.8rem,8vw,8rem)] font-semibold leading-[.79] tracking-[-.072em] max-md:text-[clamp(3.25rem,15.5vw,5.1rem)]">An icon <span className="text-white/34">takes flight.</span></h2>
           </div>
 
-          <div
-            className="absolute left-[max(20px,calc((100vw-1440px)/2))] top-[clamp(8.8rem,19vh,12.5rem)] z-30 max-w-[680px] max-md:left-5 max-md:right-5 max-md:top-[7.7rem]"
-            style={{ opacity: slsCopyOpacity, transform: `translate3d(0, ${reducedMotion ? 0 : mix(22, -16, range(slsProgress, 0.04, 0.34))}px, 0)` }}
-          >
-            <p className="flex items-center gap-3 text-[10px] font-bold tracking-[.24em] text-white/45"><span className="h-px w-9 bg-[#d59a83]" /> CHAPTER 02 · THE ICON</p>
-            <h2 className="mt-5 max-w-[760px] text-[clamp(4rem,8.7vw,8.8rem)] font-semibold leading-[.79] tracking-[-.07em] max-sm:text-[clamp(3.35rem,16vw,5rem)]">
-              An icon <span className="text-white/36">takes flight.</span>
-            </h2>
-            <p className="mt-6 text-sm font-semibold uppercase tracking-[.18em] text-white/62">Mercedes-Benz SLS AMG</p>
-            <p className="mt-3 max-w-md text-sm leading-6 text-white/44">A Drift Experience showcase. The SLS is not presented as currently bookable inventory.</p>
-          </div>
-
-          <div
-            className="pointer-events-none absolute inset-x-0 bottom-[3vh] z-10 mx-auto h-[70%] w-[min(96vw,1380px)] max-md:bottom-[9vh] max-md:h-[55%] max-md:w-[138vw]"
-            style={{ transform: `translate3d(${slsX}px, ${slsY}px, 0) scale(${slsScale})` }}
-            role="img"
-            aria-label="Mercedes-Benz SLS AMG cinematic gullwing showcase"
-          >
-            <div aria-hidden="true" className="absolute bottom-[7%] left-[17%] right-[8%] h-[12%] rounded-[50%] bg-black/90 blur-3xl" />
-            <div aria-hidden="true" className="absolute left-[29%] top-[4%] h-[52%] w-[10%] -rotate-[18deg] bg-[linear-gradient(to_top,rgba(214,136,104,.32),transparent)] blur-2xl" style={{ opacity: wingGlow }} />
-            <div aria-hidden="true" className="absolute right-[29%] top-[4%] h-[52%] w-[10%] rotate-[18deg] bg-[linear-gradient(to_top,rgba(214,136,104,.32),transparent)] blur-2xl" style={{ opacity: wingGlow }} />
+          <figure className="pointer-events-none absolute bottom-[1vh] left-1/2 z-10 h-[76vh] w-[82vw] -translate-x-1/2 max-md:bottom-[12vh] max-md:h-[55vh] max-md:w-[134vw]" aria-label="Mercedes-Benz SLS AMG Drift Experience showcase">
+            <div aria-hidden="true" className="absolute bottom-[8%] left-[17%] right-[17%] h-[13%] rounded-[50%] bg-black/85 blur-3xl" />
             {showSlsAssets && (
               <>
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 bg-cover bg-center [filter:saturate(.62)_contrast(1.13)_brightness(.64)] [mask-image:linear-gradient(90deg,transparent_1%,rgba(0,0,0,.9)_10%,black_23%,black_91%,transparent_99%)] max-md:bg-[position:52%_center]"
-                  style={{ backgroundImage: `url("${SLS_CLOSED}")`, opacity: slsClosedOpacity }}
-                />
-                <div
-                  aria-hidden="true"
-                  className="absolute inset-0 bg-cover bg-center [filter:saturate(.64)_contrast(1.15)_brightness(.68)] [mask-image:linear-gradient(90deg,transparent_1%,rgba(0,0,0,.9)_10%,black_23%,black_91%,transparent_99%)] max-md:bg-[position:50%_center]"
-                  style={{ backgroundImage: `url("${SLS_OPEN}")`, opacity: slsOpenOpacity }}
-                />
+                <img src={SLS_IMAGES[0]} alt="" aria-hidden="true" loading="lazy" className="drift-image absolute inset-0 size-full object-cover [filter:saturate(.55)_contrast(1.12)_brightness(.62)]" style={{ opacity: 1 - slsOpen, objectPosition: '50% center', transform: `translate3d(${mix(30, 4, sls) + pointerX * 4}px,${mix(18, -2, sls) + pointerY * 3}px,0) scale(${mix(.99, 1.08, sls)})` }} />
+                <img src={SLS_IMAGES[1]} alt="" aria-hidden="true" loading="lazy" className="drift-image absolute inset-0 size-full object-cover [filter:saturate(.58)_contrast(1.13)_brightness(.66)]" style={{ opacity: slsOpen, objectPosition: '50% center', transform: `translate3d(${mix(18, -8, sls) + pointerX * 4}px,${mix(16, -4, sls) + pointerY * 3}px,0) scale(${mix(1.02, 1.1, sls)})`, clipPath: `inset(${mix(18, 0, slsOpen)}% ${mix(10, 0, slsOpen)}% 0 ${mix(10, 0, slsOpen)}%)` }} />
               </>
             )}
-            <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(112deg,transparent_34%,rgba(255,215,196,.11)_48%,transparent_61%)] mix-blend-screen" style={{ transform: `translate3d(${mix(-55, 65, slsProgress)}%,0,0)`, opacity: slsOpacity }} />
-          </div>
+            <div aria-hidden="true" className="absolute left-[25%] right-[25%] top-[6%] h-[48%] bg-[radial-gradient(ellipse,rgba(223,155,120,.26),transparent_66%)] blur-2xl" style={{ opacity: slsOpen }} />
+            <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(104deg,transparent_36%,rgba(255,219,197,.13)_49%,transparent_62%)] mix-blend-screen" style={{ transform: `translate3d(${mix(-65, 65, sls)}%,0,0)` }} />
+          </figure>
 
-          <div className="absolute inset-0 z-30 hidden lg:block" style={{ opacity: slsSpecOpacity }} aria-label="Mercedes-Benz SLS AMG showcase specifications">
-            <SpecMarker className="left-[8%] top-[44%]" align="left" label={slsSpecs[0]} emphasis />
-            <SpecMarker className="left-[11%] top-[67%]" align="left" label={slsSpecs[1]} />
-            <SpecMarker className="right-[7%] top-[41%]" align="right" label={slsSpecs[2]} />
-            <SpecMarker className="right-[11%] top-[62%]" align="right" label={slsSpecs[3]} />
-            <SpecMarker className="right-[7%] top-[78%]" align="right" label={slsSpecs[4]} emphasis />
-          </div>
-
-          <div className="absolute inset-x-4 bottom-6 z-30 flex flex-wrap justify-center gap-2 lg:hidden" style={{ opacity: slsSpecOpacity }}>
-            {slsSpecs.map((spec, index) => <span key={spec} className={`rounded-full px-3 py-2 text-[9px] font-semibold tracking-[.12em] backdrop-blur-lg ${index === slsSpecs.length - 1 ? 'bg-white text-black' : 'border border-white/12 bg-black/48 text-white/72'}`}>{spec}</span>)}
-          </div>
-
-          <div className="absolute bottom-4 left-5 z-40 max-w-[72vw] text-[9px] leading-4 text-white/25 max-sm:hidden">
-            SLS showcase photography: <a className="underline decoration-white/20 underline-offset-2 hover:text-white/50" href={SLS_SOURCE_CLOSED} target="_blank" rel="noreferrer">Sicnag / Wikimedia Commons</a> · <a className="underline decoration-white/20 underline-offset-2 hover:text-white/50" href={SLS_SOURCE_OPEN} target="_blank" rel="noreferrer">Axion23 / Wikimedia Commons, CC BY 2.0</a>
+          <div className="absolute bottom-[7vh] right-[max(24px,calc((100vw-1440px)/2))] z-40 w-[min(86vw,440px)] text-right max-md:bottom-[5vh] max-md:left-5 max-md:right-5 max-md:w-auto max-md:text-left" style={{ opacity: slsSpecs }}>
+            <p className="text-[9px] font-bold uppercase tracking-[.2em] text-[#d9a58e]">DRIFT EXPERIENCE</p>
+            <p className="mt-3 text-sm leading-6 text-white/54">6.2L V8 · GULLWING DOORS · REAR-WHEEL DRIVE · 7-SPEED DCT</p>
+            <p className="mt-2 text-[11px] leading-5 text-white/34">Showcase vehicle. It is not presented as bookable rental inventory.</p>
           </div>
         </div>
 
-        <div aria-hidden="true" className="absolute inset-x-0 bottom-0 z-[35] h-[58%] bg-[linear-gradient(to_bottom,transparent,#f5f5f7_78%)]" style={{ opacity: handoff }} />
-        <div
-          className="absolute inset-x-0 bottom-[10vh] z-40 mx-auto w-[min(100%-40px,1240px)] text-center text-[#15171a] max-md:bottom-[8vh]"
-          style={{ opacity: handoff, transform: `translate3d(0, ${mix(38, 0, handoff)}px, 0)` }}
-        >
-          <p className="text-[10px] font-bold tracking-[.22em] text-black/42">THE REAL DRIFT FLEET</p>
-          <h2 className="mt-3 text-[clamp(2.8rem,6vw,5.8rem)] font-semibold leading-none tracking-[-.065em]">Choose your drive.</h2>
-          <p className="mx-auto mt-4 max-w-lg text-sm leading-6 text-black/52">The cinematic story hands the wheel back to the rental product: real vehicles, real prices, filters and the working booking flow.</p>
-          <Link href="#browse" className="mt-6 inline-flex min-h-12 items-center gap-2 rounded-full bg-black px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black">
-            Browse available cars <ArrowRight className="size-4" />
-          </Link>
+        <div aria-hidden="true" className="absolute inset-0 z-[33] bg-[#060607]" style={{ opacity: fadeWindow(p, 0.604, 0.628, 0.648, 0.67) }}>
+          <div className="absolute inset-y-0 left-[-18%] w-[46%] -skew-x-12 bg-[linear-gradient(90deg,transparent,rgba(167,16,26,.48),transparent)] blur-xl" style={{ transform: `translate3d(${mix(-40, 290, range(p, .604, .67))}%,0,0)` }} />
         </div>
 
-        <div className="drift-scroll-cue absolute bottom-7 left-1/2 z-40 flex -translate-x-1/2 items-center gap-3 text-[9px] font-semibold uppercase tracking-[.18em] text-white/38 max-md:hidden" style={{ opacity: (1 - range(p, 0.09, 0.18)) * (1 - handoff) }}>
-          Scroll to explore <span className="h-8 w-px bg-white/18" /><ArrowDown className="size-3.5" />
+        <div className="absolute inset-0" style={{ opacity: ferrariOpacity }} aria-hidden={ferrariOpacity < 0.02}>
+          <div aria-hidden="true" className="absolute inset-0 bg-[radial-gradient(circle_at_72%_58%,rgba(171,18,29,.2),transparent_31%),linear-gradient(112deg,#060607_6%,#100708_54%,#050506_95%)]" />
+          <div aria-hidden="true" className="absolute left-[3%] top-[48%] z-0 -translate-y-1/2 whitespace-nowrap text-[clamp(10rem,24vw,24rem)] font-black leading-none tracking-[-.09em] text-white/[.04] max-md:top-[42%] max-md:text-[39vw]">812</div>
+          <div aria-hidden="true" className="absolute inset-x-[8%] bottom-[12%] h-px bg-gradient-to-r from-transparent via-[#bf1f2e]/50 to-transparent" />
+
+          <div className="absolute left-[max(20px,calc((100vw-1440px)/2))] top-[clamp(8.5rem,18vh,12rem)] z-30 max-w-[650px] max-md:left-5 max-md:right-5 max-md:top-[6.9rem]" style={{ opacity: ferrariCopy, transform: `translate3d(${reducedMotion ? 0 : mix(-12, 0, range(ferrari, .08, .28))}px,0,0)` }}>
+            <Eyebrow red>DRIFT / 03 · 812 SUPERFAST</Eyebrow>
+            <p className="mt-5 text-[11px] font-semibold uppercase tracking-[.18em] text-white/48">Ferrari 812 Superfast</p>
+            <h2 className="mt-3 text-[clamp(3.8rem,8.4vw,8.4rem)] font-semibold leading-[.78] tracking-[-.074em] max-md:text-[clamp(3.2rem,15vw,5rem)]">Velocity, <span className="text-white/32">sculpted.</span></h2>
+          </div>
+
+          <figure className="pointer-events-none absolute bottom-[-1vh] right-[-7vw] z-10 h-[79vh] w-[80vw] max-md:bottom-[12vh] max-md:right-[-38vw] max-md:h-[54vh] max-md:w-[142vw]" aria-label="Ferrari 812 Superfast Drift Experience showcase">
+            <div aria-hidden="true" className="absolute bottom-[8%] left-[16%] right-[8%] h-[13%] rounded-[50%] bg-black/90 blur-3xl" />
+            {showFerrariAssets && FERRARI_IMAGES.map((src, index) => (
+              <img
+                key={src}
+                src={src}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                className="drift-image absolute inset-0 size-full object-cover [filter:saturate(.78)_contrast(1.15)_brightness(.64)]"
+                style={{
+                  opacity: ferrariAngle[index],
+                  objectPosition: index === 0 ? '50% center' : index === 1 ? '48% center' : '55% center',
+                  transform: `translate3d(${mix(46, -24, ferrari) + pointerX * 7}px,${mix(16, -5, ferrari) + pointerY * 4}px,0) scale(${mix(1.02, 1.13, ferrari)})`,
+                  clipPath: index === 1 ? `polygon(${mix(100, 0, range(ferrari, .29, .48))}% 0,100% 0,100% 100%,${mix(84, 0, range(ferrari, .29, .48))}% 100%)` : undefined,
+                }}
+              />
+            ))}
+            <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(101deg,transparent_30%,rgba(255,64,73,.18)_48%,transparent_65%)] mix-blend-screen" style={{ transform: `translate3d(${mix(-80, 88, ferrari) + pointerX * 12}%,0,0)` }} />
+            <div aria-hidden="true" className="drift-motion-only absolute inset-y-[20%] left-[-10%] w-[55%] bg-[linear-gradient(90deg,transparent,rgba(255,255,255,.05),transparent)] blur-xl" style={{ transform: `translate3d(${mix(-50, 220, ferrari)}%,0,0)` }} />
+          </figure>
+
+          <div className="absolute bottom-[7vh] left-[max(20px,calc((100vw-1440px)/2))] z-40 max-w-[520px] max-md:bottom-[5vh] max-md:left-5 max-md:right-5" style={{ opacity: ferrariSpecs }}>
+            <p className="text-[9px] font-bold uppercase tracking-[.2em] text-[#e3434e]">DRIFT EXPERIENCE</p>
+            <p className="mt-3 text-sm leading-6 text-white/55">V12 · REAR-WHEEL DRIVE · 812 SUPERFAST · CARBON-INSPIRED AERO TREATMENT</p>
+            <p className="mt-2 text-[11px] leading-5 text-white/34">Mansory-inspired campaign attitude only. No claim is made that this vehicle is a Mansory conversion or rental inventory.</p>
+          </div>
         </div>
 
-        <div className="absolute right-6 top-1/2 z-50 hidden -translate-y-1/2 items-center gap-3 text-[9px] font-semibold tracking-[.14em] text-white/36 xl:flex [writing-mode:vertical-rl]" style={{ opacity: 1 - handoff }}>
-          <span>{chapter[0]}</span>
-          <span className="h-12 w-px bg-white/16" />
-          <span>{chapter[1]}</span>
+        <div aria-hidden="true" className="absolute inset-0 z-[50] bg-[linear-gradient(180deg,rgba(246,246,247,0)_0%,#f5f5f7_70%)]" style={{ opacity: handoff }} />
+        <div className="absolute inset-x-0 bottom-[8vh] z-[60] mx-auto w-[min(100%-40px,1180px)] text-center text-[#17191c] max-md:bottom-[6vh]" style={{ opacity: handoff, transform: `translate3d(0,${reducedMotion ? 0 : mix(26, 0, handoff)}px,0)` }}>
+          <p className="text-[9px] font-bold uppercase tracking-[.22em] text-black/42">THE REAL DRIFT FLEET · SOUTH AFRICA</p>
+          <h2 className="mt-3 text-[clamp(3rem,6.3vw,6rem)] font-semibold leading-none tracking-[-.07em]">Choose your drive.</h2>
+          <p className="mx-auto mt-4 max-w-xl text-sm leading-6 text-black/52">Real vehicles, live rates and the working booking flow. Pickup options in Kimberley, Upington, Bloemfontein, Johannesburg and Cape Town.</p>
+          <Link href="#browse" className="mt-6 inline-flex min-h-12 items-center gap-2 border-b border-black/30 px-1 py-3 text-xs font-bold uppercase tracking-[.13em] transition hover:gap-3 hover:border-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black">Browse available cars <ArrowRight className="size-4" /></Link>
         </div>
+
+        <a href="/cinematic/credits.txt" className="absolute bottom-4 left-5 z-[76] text-[8px] font-medium uppercase tracking-[.14em] text-white/20 transition hover:text-white/55 focus-visible:text-white max-md:hidden" style={{ opacity: 1 - handoff }}>Photography credits</a>
       </div>
     </section>
   );
 }
 
-function SpecMarker({ label, className, align, emphasis = false }: { label: string; className: string; align: 'left' | 'right'; emphasis?: boolean }) {
+function Eyebrow({ children, warm = false, red = false }: { children: React.ReactNode; warm?: boolean; red?: boolean }) {
   return (
-    <div className={`absolute ${className} flex items-center gap-3 ${align === 'right' ? 'flex-row-reverse text-right' : ''}`}>
-      <span className={`size-1.5 rounded-full ${emphasis ? 'bg-white' : 'bg-[#d59a83]'}`} />
-      <span className="h-px w-12 bg-white/18" aria-hidden="true" />
-      <span className={`text-[9px] font-semibold tracking-[.16em] ${emphasis ? 'text-white' : 'text-white/58'}`}>{label}</span>
+    <p className="flex items-center gap-3 text-[9px] font-bold uppercase tracking-[.22em] text-white/47">
+      <span className={`h-px w-9 ${red ? 'bg-[#df3441]' : warm ? 'bg-[#d59a83]' : 'bg-white/60'}`} />
+      {children}
+    </p>
+  );
+}
+
+function SpecLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="group">
+      <div className="h-px w-full bg-white/13"><span className="block h-px w-9 bg-white/58 transition-all duration-500 group-hover:w-16" /></div>
+      <p className="mt-2 text-[8px] font-semibold uppercase tracking-[.18em] text-white/32">{label}</p>
+      <p className="mt-1 text-[10px] font-bold uppercase tracking-[.15em] text-white/68">{value}</p>
     </div>
   );
 }

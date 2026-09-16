@@ -23,9 +23,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Phase 2 cinematic lint
-        id: phase2lint
-        run: npx oxlint -A jsx-a11y/prefer-tag-over-role components/drift-phase2-home.tsx
+      - name: Cinematic lint
+        id: cinematiclint
+        run: npx oxlint components/drift-phase2-home.tsx
 
       - name: Repository lint
         id: lint
@@ -37,4 +37,4 @@ jobs:
 
       - name: Report baseline lint debt
         if: steps.lint.outcome == 'failure'
-        run: echo "Phase 2 cinematic lint and build passed; repository-wide pre-existing lint debt remains."
+        run: echo "Cinematic lint and build passed; repository-wide pre-existing lint debt remains."
