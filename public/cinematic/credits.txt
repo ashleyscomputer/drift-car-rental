@@ -1,19 +1,8 @@
-DRIFT CINEMATIC PHOTOGRAPHY CREDITS
+DRIFT SLS AMG CINEMATIC PHOTOGRAPHY CREDITS
 
 These files are downloaded at build/dev time from Wikimedia Commons and served locally by Drift. Browser clients do not hotlink the source hosts.
 
-G63 / Chapter 01
-- g63-01.jpg: “Mercedes-AMG W463 G 63 Magno Hero Edition Green Hell Magno (21).jpg” — Damian B Oh — CC BY-SA 4.0
-  Source: https://commons.wikimedia.org/wiki/File:Mercedes-AMG_W463_G_63_Magno_Hero_Edition_Green_Hell_Magno_(21).jpg
-  License: https://creativecommons.org/licenses/by-sa/4.0/
-- g63-02.jpg: “Mercedes-AMG W463 G 63 Magno Hero Edition Green Hell Magno (22).jpg” — Damian B Oh — CC BY-SA 4.0
-  Source: https://commons.wikimedia.org/wiki/File:Mercedes-AMG_W463_G_63_Magno_Hero_Edition_Green_Hell_Magno_(22).jpg
-  License: https://creativecommons.org/licenses/by-sa/4.0/
-- g63-03.jpg: “Mercedes-AMG W463 G 63 Magno Hero Edition Green Hell Magno (24).jpg” — Damian B Oh — CC BY-SA 4.0
-  Source: https://commons.wikimedia.org/wiki/File:Mercedes-AMG_W463_G_63_Magno_Hero_Edition_Green_Hell_Magno_(24).jpg
-  License: https://creativecommons.org/licenses/by-sa/4.0/
-
-SLS AMG / Chapter 02
+Mercedes-Benz SLS AMG
 - sls-closed.jpg: “Mercedes-AMG SLS.jpg” — MrWalkr — CC BY-SA 4.0
   Source: https://commons.wikimedia.org/wiki/File:Mercedes-AMG_SLS.jpg
   License: https://creativecommons.org/licenses/by-sa/4.0/
@@ -21,16 +10,7 @@ SLS AMG / Chapter 02
   Source: https://commons.wikimedia.org/wiki/File:Mercedes_SLS_AMG_gullwing_grey.jpg
   License: https://creativecommons.org/licenses/by/2.0/
 
-Ferrari 812 Superfast / Chapter 03
-- ferrari-01.jpg: “Ferrari 812 Superfast.jpg” — Y.Leclercq — CC BY-SA 4.0
-  Source: https://commons.wikimedia.org/wiki/File:Ferrari_812_Superfast.jpg
-  License: https://creativecommons.org/licenses/by-sa/4.0/
-- ferrari-02.jpg: “Ferrari 814 Superfast.jpg” (description identifies the Ferrari 812 Superfast) — Y.Leclercq — CC BY-SA 4.0
-  Source: https://commons.wikimedia.org/wiki/File:Ferrari_814_Superfast.jpg
-  License: https://creativecommons.org/licenses/by-sa/4.0/
-- ferrari-03.jpg: “Ferrari 818 Superfast.jpg” (description identifies the Ferrari 812 Superfast) — Y.Leclercq — CC BY-SA 4.0
-  Source: https://commons.wikimedia.org/wiki/File:Ferrari_818_Superfast.jpg
-  License: https://creativecommons.org/licenses/by-sa/4.0/
-
 Presentation note
-The site applies non-destructive CSS crops, tonal grading, masks, overlays and motion to the downloaded photographs. Those presentation treatments do not imply endorsement by the photographers, Wikimedia Commons, Mercedes-Benz or Ferrari. The Ferrari chapter is described as a Drift Experience with a carbon-inspired / Mansory-inspired campaign attitude only; it does not claim that the photographed car is a Mansory conversion.
+The homepage uses these two visual states of the same vehicle to create a lightweight 2.5D cinematic sequence: approach, zoom, gullwing reveal and detail movement. CSS crops, tonal grading, masks, overlays and motion are non-destructive presentation treatments and do not imply endorsement by the photographers, Wikimedia Commons or Mercedes-Benz.
+
+The SLS AMG is presented as a Drift Experience showcase and is not represented as currently bookable rental inventory.
