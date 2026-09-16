@@ -23,9 +23,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Cinematic lint
+      - name: Cinematic composition lint
         id: cinematiclint
-        run: npx oxlint components/drift-phase2-home.tsx
+        run: npx oxlint components/drift-phase2-home.tsx app/page.tsx
 
       - name: Repository lint
         id: lint
@@ -37,4 +37,4 @@ jobs:
 
       - name: Report baseline lint debt
         if: steps.lint.outcome == 'failure'
-        run: echo "Cinematic lint and build passed; repository-wide pre-existing lint debt remains."
+        run: echo "Cinematic composition lint and build passed; repository-wide pre-existing lint debt remains."
