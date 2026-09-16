@@ -46,7 +46,7 @@ const currency = (value: number) => `R${value.toLocaleString('en-ZA')}`;
 const statusClass = (status: string) => status === 'Available' || status === 'Confirmed' || status === 'Paid' || status === 'Completed'
   ? 'bg-emerald-50 text-emerald-700' : status === 'Pending' || status === 'Maintenance' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700';
 
-export default function RentalApp() {
+export default function RentalApp({ showHero = true }: { showHero?: boolean }) {
   const [mode, setMode] = useState<'customer' | 'admin'>('customer');
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -88,8 +88,9 @@ export default function RentalApp() {
   return (
     <main className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f]">
       <Header user={user} onSignOut={() => { signOutDemoUser(); setToast('Signed out of this browser.'); }} onAdmin={() => setMode('admin')} />
-      <section className="mx-auto max-w-7xl px-5 pb-12 pt-8 lg:px-8 lg:pt-12">
-        <div className="relative min-h-[520px] overflow-hidden rounded-[36px] bg-[#dfe8ef] shadow-[0_24px_80px_rgba(0,0,0,.12)]">
+      {showHero && (
+        <section className="mx-auto max-w-7xl px-5 pb-12 pt-8 lg:px-8 lg:pt-12">
+          <div className="relative min-h-[520px] overflow-hidden rounded-[36px] bg-[#dfe8ef] shadow-[0_24px_80px_rgba(0,0,0,.12)]">
           <img src="/og.png" alt="Two premium Drift rental vehicles" className="hero-drift absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/45 to-transparent" />
           <div className="relative z-10 flex min-h-[520px] max-w-2xl flex-col justify-end p-7 sm:p-12 lg:p-16">
@@ -98,8 +99,9 @@ export default function RentalApp() {
             <p className="mt-5 max-w-lg text-lg leading-7 text-black/60">Choose the right car, see the full price and book in minutes. No queues. No surprises.</p>
             <div className="mt-7 flex flex-wrap gap-3"><a href="#browse" className="inline-flex w-fit items-center gap-2 rounded-full bg-[#0071e3] px-6 py-3 text-sm font-medium text-white transition hover:bg-[#0077ed]">Browse vehicles <ArrowRight className="size-4" /></a><a href="/experience" className="inline-flex w-fit items-center gap-2 rounded-full border border-black/10 bg-white/70 px-6 py-3 text-sm font-medium text-black backdrop-blur transition hover:bg-white"><Sparkles className="size-4"/>Explore in 3D</a></div>
           </div>
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
 
       <section id="browse" className="mx-auto max-w-7xl scroll-mt-24 px-5 pb-28 lg:px-8">
         <div className="mb-7 flex flex-wrap items-end justify-between gap-4"><div><p className="text-sm font-medium text-[#0071e3]">Available now</p><h2 className="mt-1 text-3xl font-semibold tracking-[-.04em] sm:text-4xl">Choose your drive.</h2></div><p className="text-sm text-black/45">{filtered.length} vehicles match</p></div>
