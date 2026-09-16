@@ -23,7 +23,12 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Lint
+      - name: Phase 2 cinematic lint
+        id: phase2lint
+        continue-on-error: true
+        run: npx oxlint components/drift-cinematic-home.tsx
+
+      - name: Repository lint
         id: lint
         continue-on-error: true
         run: npm run lint
@@ -31,6 +36,9 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Report lint debt
-        if: steps.lint.outcome == 'failure'
-        run: echo "Build passed, but repository-wide lint debt remains and should be handled separately."
+      - name: Report lint status
+        if: steps.phase2lint.outcome == 'failure' || steps.lint.outcome == 'failure'
+        run: |
+          echo "Build passed. Lint findings remain and are reported above."
+          echo "Phase 2 lint outcome: ${{ steps.phase2lint.outcome }}"
+          echo "Repository lint outcome: ${{ steps.lint.outcome }}"
