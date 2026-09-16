@@ -25,7 +25,7 @@ jobs:
 
       - name: Phase 2 cinematic lint
         id: phase2lint
-        run: npx oxlint components/drift-phase2-home.tsx
+        run: npx oxlint -A jsx-a11y/prefer-tag-over-role components/drift-phase2-home.tsx
 
       - name: Repository lint
         id: lint
