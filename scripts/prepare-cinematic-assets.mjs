@@ -7,14 +7,8 @@ const outputDir = join(root, 'public', 'cinematic');
 mkdirSync(outputDir, { recursive: true });
 
 const assets = [
-  { output: 'g63-01.jpg', file: 'Mercedes-AMG W463 G 63 Magno Hero Edition Green Hell Magno (21).jpg' },
-  { output: 'g63-02.jpg', file: 'Mercedes-AMG W463 G 63 Magno Hero Edition Green Hell Magno (22).jpg' },
-  { output: 'g63-03.jpg', file: 'Mercedes-AMG W463 G 63 Magno Hero Edition Green Hell Magno (24).jpg' },
   { output: 'sls-closed.jpg', file: 'Mercedes-AMG SLS.jpg' },
   { output: 'sls-open.jpg', file: 'Mercedes SLS AMG gullwing grey.jpg' },
-  { output: 'ferrari-01.jpg', file: 'Ferrari 812 Superfast.jpg' },
-  { output: 'ferrari-02.jpg', file: 'Ferrari 814 Superfast.jpg' },
-  { output: 'ferrari-03.jpg', file: 'Ferrari 818 Superfast.jpg' },
 ];
 
 const minimumBytes = 50_000;
@@ -52,4 +46,4 @@ for (const asset of assets) {
   writeFileSync(destination, bytes);
 }
 
-console.log(`[cinematic-assets] ${assets.length} licensed campaign assets ready in public/cinematic`);
+console.log(`[cinematic-assets] ${assets.length} licensed SLS campaign assets ready in public/cinematic`);
