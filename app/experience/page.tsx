@@ -1,5 +1,2 @@
-import CinematicCar from '@/components/cinematic-car';
-
-export default function ExperiencePage() {
-  return <CinematicCar />;
-}
+import RentalApp from '@/components/rental-app';
+export default function ExperiencePage() { return <RentalApp />; }
