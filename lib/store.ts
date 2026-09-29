@@ -28,7 +28,7 @@ export type Booking = {
   extras: string[];
   extrasCost: number;
   totalCost: number;
-  status: 'Confirmed' | 'Pending' | 'Completed' | 'Cancelled';
+  status: 'Confirmed' | 'Pending' | 'Cancellation Requested' | 'Completed' | 'Cancelled';
 };
 
 export let vehicles: Vehicle[] = [
