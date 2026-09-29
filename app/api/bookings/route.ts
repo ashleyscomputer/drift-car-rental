@@ -52,8 +52,8 @@ export async function POST(request: Request) {
 
 export async function PATCH(request: Request) {
   try {
-    const body = await request.json() as { id?: string; status?: 'Confirmed' | 'Pending' | 'Completed' | 'Cancelled' };
-    const allowed = ['Confirmed','Pending','Completed','Cancelled'] as const;
+    const body = await request.json() as { id?: string; status?: 'Confirmed' | 'Pending' | 'Cancellation Requested' | 'Completed' | 'Cancelled' };
+    const allowed = ['Confirmed','Pending','Cancellation Requested','Completed','Cancelled'] as const;
     if (!body.id || !body.status || !allowed.includes(body.status)) return Response.json({error:'Choose a valid booking status.'},{status:400});
     const booking = updateBookingStatus(body.id, body.status);
     if (!booking) return Response.json({error:'Booking not found.'},{status:404});
