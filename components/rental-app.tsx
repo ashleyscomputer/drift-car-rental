@@ -4,7 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft, ArrowRight, CalendarDays, CarFront, Check, ChevronRight,
   CircleDollarSign, ClipboardList, Database, Download, FileBarChart, Gauge, LayoutDashboard,
-  Menu, Pencil, Plus, Search, Settings2, ShieldCheck, Sparkles, Star, Table2, Trash2,
+  Menu, Pencil, Plus, Search, ShieldCheck, Sparkles, Star, Table2, Trash2,
   Users, X,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
