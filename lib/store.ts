@@ -108,26 +108,11 @@ const marketAlignedRates: Record<number, number> = {
 };
 vehicles = vehicles.map((vehicle) => ({ ...vehicle, dailyRate: marketAlignedRates[vehicle.id] ?? vehicle.dailyRate }));
 
-export let bookings: Booking[] = [
-  { id: 'BK-1048', customer: 'Naledi Molefe', email: 'naledi@example.com', vehicleId: 2, vehicle: 'Toyota Corolla Cross', startDate: '2026-09-03', endDate: '2026-09-07', pickupCity: 'Kimberley', returnCity: 'Kimberley', totalCost: 3160, status: 'Confirmed' },
-  { id: 'BK-1047', customer: 'Liam Daniels', email: 'liam@example.com', vehicleId: 1, vehicle: 'Volkswagen Polo Vivo', startDate: '2026-09-02', endDate: '2026-09-05', pickupCity: 'Upington', returnCity: 'Kimberley', totalCost: 1350, status: 'Pending' },
-  { id: 'BK-1046', customer: 'Thabo Mokoena', email: 'thabo@example.com', vehicleId: 3, vehicle: 'Ford Ranger', startDate: '2026-08-28', endDate: '2026-09-02', pickupCity: 'Kimberley', returnCity: 'Kimberley', totalCost: 4900, status: 'Completed' },
-  { id: 'BK-1045', customer: 'Aaliyah Jacobs', email: 'aaliyah@example.com', vehicleId: 4, vehicle: 'BMW 320i', startDate: '2026-09-10', endDate: '2026-09-12', pickupCity: 'Bloemfontein', returnCity: 'Bloemfontein', totalCost: 2500, status: 'Confirmed' },
-];
+export let bookings: Booking[] = [];
 
-export const customers = [
-  { id: 'CU-201', name: 'Naledi Molefe', email: 'naledi@example.com', phone: '071 555 0134', bookings: 4 },
-  { id: 'CU-202', name: 'Liam Daniels', email: 'liam@example.com', phone: '082 111 4830', bookings: 2 },
-  { id: 'CU-203', name: 'Thabo Mokoena', email: 'thabo@example.com', phone: '073 820 1944', bookings: 6 },
-  { id: 'CU-204', name: 'Aaliyah Jacobs', email: 'aaliyah@example.com', phone: '076 332 9931', bookings: 3 },
-];
+export const customers: {id:string; name:string; email:string; phone:string; bookings:number}[] = [];
 
-export const payments = [
-  { id: 'PAY-8842', bookingId: 'BK-1048', amount: 3160, date: '2026-09-01', status: 'Paid' },
-  { id: 'PAY-8841', bookingId: 'BK-1047', amount: 1350, date: '2026-09-01', status: 'Pending' },
-  { id: 'PAY-8839', bookingId: 'BK-1046', amount: 4900, date: '2026-08-27', status: 'Paid' },
-  { id: 'PAY-8836', bookingId: 'BK-1045', amount: 2500, date: '2026-08-25', status: 'Paid' },
-];
+export const payments: {id:string; bookingId:string; amount:number; date:string; status:string}[] = [];
 
 export function addVehicle(vehicle: Omit<Vehicle, 'id'>) {
   const created = { ...vehicle, id: Math.max(0, ...vehicles.map((item) => item.id)) + 1 };

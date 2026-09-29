@@ -154,3 +154,13 @@ body {
   .vehicle-3d-card:hover { transform: perspective(1100px) translateY(-8px) rotateX(1.5deg) rotateY(-2deg); box-shadow: 0 28px 65px rgba(0,0,0,.14); }
 }
 @media (prefers-reduced-motion: reduce) { .page-enter,.auth-orbit,.hero-drift,.success-pop,.payment-shimmer::after { animation: none !important; } }
+
+/* Ordinary transitions keep content visible independently of scrolling. */
+.hero-drift, .auth-orbit { animation: none; }
+.payment-shimmer::after { display: none; }
+.vehicle-3d-card:hover { transform: translateY(-3px); }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .vehicle-3d-card:hover { transform: none; }
+}

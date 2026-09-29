@@ -13,7 +13,7 @@ export async function PUT(request: Request) {
 }
 
 export async function DELETE(request: Request) {
-  const { id } = await request.json();
+  const { id } = await request.json() as {id:number};
   deleteVehicle(Number(id));
   return Response.json({ ok: true });
 }
