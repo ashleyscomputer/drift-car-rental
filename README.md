@@ -4,39 +4,64 @@
   # Drift Car Rental
 
   **A polished, Apple-inspired car-rental experience for South Africa.**
-
-  [![Live site](https://img.shields.io/badge/Live_Site-Open_Drift-0071e3?style=for-the-badge)](https://drift-car-rental-2026.ashleyvr90.chatgpt.site)
-  [![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-  [![React](https://img.shields.io/badge/React-19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
-
-  [Live demo](https://drift-car-rental-2026.ashleyvr90.chatgpt.site) · [Setup](docs/SETUP.md) · [Architecture](docs/ARCHITECTURE.md) · [API reference](docs/API.md)
 </div>
 
 ---
 
 ## Overview
 
-Drift is a full-stack university assignment prototype that makes browsing and booking a rental car feel calm, fast and premium. It combines a responsive customer catalogue, local-only demo authentication, a simulated checkout, an operations dashboard, in-memory API routes and an on-device Hugging Face assistant—without requiring Firebase or a permanent database.
+Drift is a full-stack university assignment that demonstrates a complete rental workflow without requiring a production database or payment gateway.
 
-The catalogue contains **70 vehicles** across value, comfort and premium tiers, with image galleries and market-aligned indicative South African daily rates.
+The application includes a responsive 70-vehicle catalogue, guest booking, role-based temporary login, client booking management, an admin operations dashboard, booking calendar, rental extras, availability checks, cancellation approval workflow, support/policy pages, and optional Hostinger booking confirmation email support.
 
-## Highlights
+## Core features
 
-- Responsive Apple-inspired interface with glass surfaces and focused typography
-- 70-car catalogue spanning hatchbacks, sedans, SUVs, bakkies and passenger vans
-- Scroll-driven 3D Drift Concept with articulated door, window, camera, paint and upholstery previews
-- Scroll-driven 3D Drift Concept with articulated door, window, camera, paint and upholstery previews
-- Brand, model, type, year, transmission, feature and rate filtering
-- Four-image vehicle gallery and detailed specifications
-- Date- and location-based demonstration booking flow
-- Local-only demo registration, email sign-in and simulated Google sign-in
-- Card, Apple Pay and Google Pay payment simulations with animated confirmation
-- Customer and admin experiences in one application
-- Fleet, booking, customer, payment and reporting dashboards
-- Hugging Face Transformers.js chatbot for app help and general knowledge
-- Compact AI model that runs in a Web Worker inside the browser
-- In-memory REST-style backend ready for a future relational database
-- Private production deployment and documented build verification
+- Responsive value-to-premium vehicle catalogue
+- 70 vehicles across hatchbacks, sedans, SUVs, bakkies and passenger vans
+- Brand, model, type, year, transmission, feature and price filtering
+- Dedicated vehicle detail pages with specifications, ratings and gallery support
+- Guest-friendly booking flow
+- Optional rental extras with server-calculated totals
+- Server-side date conflict protection to prevent overlapping bookings
+- Five branch locations: Kimberley, Upington, Bloemfontein, Johannesburg and Cape Town
+- Temporary admin/client login layer for the pre-database assignment phase
+- My Drift client dashboard with upcoming bookings, history, extras and payment status
+- Client cancellation requests that require admin approval
+- Admin dashboard with fleet, bookings, customers, reports and database preparation
+- Calendar and table booking views
+- Vehicle states: Available, Reserved, Rented and Maintenance
+- Booking states: Confirmed, Pending, Cancellation Requested, Completed and Cancelled
+- Contact, FAQ, Rental Terms, Privacy and Cancellation Policy pages
+- Wikimedia Commons photo credits for model-specific replacement photography
+- Drift Guide browser AI assistant
+- Optional Hostinger booking confirmation email adapter
+
+## Checkout and payments
+
+No real payment gateway is connected because this is a university assignment.
+
+Bookings are validated server-side, pricing and extras are recalculated by the server, and confirmed reservations are stored with payment marked as **Pending**. No card details are collected.
+
+## Authentication
+
+The current assignment version includes temporary server-checked admin and client accounts. This layer is intentionally replaceable so persistent users, sessions and stronger authorization can be connected during the database/security phase.
+
+Production security is not considered complete until the persistent database and session layer are added.
+
+## Email confirmations
+
+The project includes a Hostinger Mail adapter.
+
+Expected environment variables:
+
+```env
+HOSTINGER_MAIL_API_TOKEN=
+HOSTINGER_MAILBOX_ID=
+HOSTINGER_MAIL_FROM_ADDRESS=ashley@kickstreet.store
+HOSTINGER_MAIL_FROM_NAME=Drift Car Rental
+```
+
+The mailbox resource ID must belong to `ashley@kickstreet.store`. If the mailbox is not configured, bookings still succeed and email sending remains disabled.
 
 ## Technology
 
@@ -44,10 +69,10 @@ The catalogue contains **70 vehicles** across value, comfort and premium tiers, 
 | --- | --- |
 | Interface | React 19, TypeScript, Tailwind CSS, Base UI, Lucide icons |
 | Framework | Vinext / Next-compatible App Router |
-| Backend | Route handlers using the Web `Request` and `Response` APIs |
-| AI | `@huggingface/transformers`, ONNX, browser Web Worker |
-| State | In-memory TypeScript store (database intentionally deferred) |
-| Hosting | OpenAI Sites / Cloudflare-compatible output |
+| Backend | Route handlers using Web Request/Response APIs |
+| AI | @huggingface/transformers, ONNX, browser Web Worker |
+| State | In-memory TypeScript store, ready for a persistent database |
+| Hosting | Vercel |
 | Quality | Oxlint, Oxfmt, production build checks |
 
 ## Quick start
@@ -56,7 +81,7 @@ Requirements:
 
 - Node.js 22.13 or newer
 - npm
-- A modern browser; WebGPU support improves local AI performance
+- A modern browser
 
 ```bash
 git clone https://github.com/ashleyscomputer/drift-car-rental.git
@@ -65,9 +90,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
-
-No environment variables, database, Firebase project or API key are required for the current prototype. See the detailed [setup guide](docs/SETUP.md) for troubleshooting and production commands.
+Open `http://localhost:3000`.
 
 ## Available scripts
 
@@ -75,49 +98,67 @@ No environment variables, database, Firebase project or API key are required for
 | --- | --- |
 | `npm run dev` | Start the development server |
 | `npm run build` | Produce the production build |
-| `npm run start` | Run the built Cloudflare-compatible server locally |
-| `npm run lint` | Check source quality with Oxlint |
+| `npm run start` | Run the built application locally |
+| `npm run lint` | Run repository lint checks |
 | `npm run format` | Format supported project files |
 
-## How the prototype works
+## Main user flows
+
+### Customer
 
 ```text
-Customer catalogue ─┐
-Admin dashboard ────┼── React client ── API route handlers ── In-memory store
-Drift Guide ────────┘        │
-                              └── Web Worker ── Hugging Face model cache
+Browse fleet
+→ View vehicle details
+→ Choose dates and branches
+→ Add optional extras
+→ Review checkout
+→ Confirm booking
+→ Booking reference + payment pending
 ```
 
-The route handlers expose vehicle, booking, database-schema demonstration and reporting data. Mutations are intentionally temporary: restarting the server restores the seeded dataset. This keeps the current assignment database-free while preserving a clear migration path.
+Signed-in clients can then manage bookings from **My Drift**.
 
-## Documentation
+### Cancellation
 
-- [Local setup and commands](docs/SETUP.md)
-- [System architecture](docs/ARCHITECTURE.md)
-- [API reference](docs/API.md)
-- [Deployment guide](docs/DEPLOYMENT.md)
-- [Database roadmap](docs/DATABASE_ROADMAP.md)
-- [Asset and image notes](docs/ASSET_SOURCES.md)
-- [Contributing guidelines](CONTRIBUTING.md)
-- [Security policy](SECURITY.md)
+```text
+Client requests cancellation
+→ Booking becomes Cancellation Requested
+→ Admin sees request on dashboard
+→ Admin keeps booking OR approves cancellation
+```
+
+### Admin
+
+```text
+Dashboard
+├── Fleet
+├── Bookings
+│   ├── Calendar
+│   └── Table
+├── Customers
+├── Reports
+└── Database preparation
+```
 
 ## Current limitations
 
-- Records are stored in memory and reset when the server restarts.
-- Login, roles and real customer accounts are not implemented.
-- Booking confirmation and payment processing are demonstrations only.
-- Displayed prices are indicative “from” rates rather than live supplier quotes.
-- The first general-knowledge chatbot request downloads and caches the local model.
+- Application records are stored in memory and can reset when the server restarts.
+- Persistent database storage is not connected yet.
+- Production-grade session enforcement and authorization are deferred to the database/security phase.
+- No real payment gateway is connected.
+- Booking confirmation email requires an authorized `ashley@kickstreet.store` Hostinger mailbox.
+- Rates are assignment catalogue values rather than live rental-company inventory pricing.
 
-## Roadmap
+## Next backend phase
 
-- Relational database and migrations
-- Authentication with customer and administrator roles
-- Availability conflict detection
-- Real payment gateway and transactional email
-- Live pricing, branch inventory and insurance options
-- Automated unit, integration and accessibility tests
+- Connect persistent database storage
+- Replace temporary account/session handling
+- Enforce production server-side authorization
+- Store booking, customer, vehicle and cancellation data persistently
+- Configure the Hostinger sender mailbox
+- Perform final cross-device deployment QA
 
 ## Academic and asset notice
 
-This repository is an educational and portfolio project. It currently has no open-source licence; copyright remains with the project author. Vehicle photography is used for educational demonstration and is primarily sourced from Wikimedia Commons. Review each original file page and its licence before commercial redistribution.
+This repository is an educational project. Vehicle photography is used for educational demonstration. Model-specific replacement photography for vehicles 41–70 is sourced from Wikimedia Commons, with source/licence links available on the in-app **Photo Credits** page.
+
