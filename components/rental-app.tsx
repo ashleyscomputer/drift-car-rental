@@ -4,8 +4,8 @@ import { FormEvent, useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft, ArrowRight, CalendarDays, CarFront, Check, ChevronRight,
   CircleDollarSign, ClipboardList, Database, Download, FileBarChart, Gauge, LayoutDashboard,
-  Menu, Pencil, Plus, Search, Settings2, ShieldCheck, Sparkles, Table2, Trash2,
-  Users, WalletCards, X,
+  Menu, Pencil, Plus, Search, Settings2, ShieldCheck, Sparkles, Star, Table2, Trash2,
+  Users, X,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
 import { Chatbot } from '@/components/chatbot';
-import type { Booking, Vehicle } from '@/lib/store';
+import { rentalExtras, vehicleRating, type Booking, type Vehicle } from '@/lib/store';
 import { CHECKOUT_KEY, readAuthUser, signOutUser, type AuthUser } from '@/lib/auth';
 
 type Section = 'Dashboard' | 'Vehicles' | 'Brands' | 'Categories' | 'Features' | 'Customers' | 'Bookings' | 'Payments' | 'Reports' | 'Database';
@@ -24,15 +24,13 @@ const features = ['Bluetooth', 'GPS', 'Air conditioning', 'Reverse camera', 'Cru
 const cities = ['Kimberley', 'Upington', 'Bloemfontein', 'Johannesburg', 'Cape Town'];
 const menu: { label: Section; icon: typeof LayoutDashboard }[] = [
   { label: 'Dashboard', icon: LayoutDashboard }, { label: 'Vehicles', icon: CarFront },
-  { label: 'Brands', icon: Sparkles }, { label: 'Categories', icon: Table2 },
-  { label: 'Features', icon: Settings2 }, { label: 'Customers', icon: Users },
-  { label: 'Bookings', icon: ClipboardList }, { label: 'Payments', icon: WalletCards },
+  { label: 'Bookings', icon: ClipboardList }, { label: 'Customers', icon: Users },
   { label: 'Reports', icon: FileBarChart }, { label: 'Database', icon: Database },
 ];
 
 const currency = (value: number) => `R${value.toLocaleString('en-ZA')}`;
-const statusClass = (status: string) => status === 'Available' || status === 'Confirmed' || status === 'Paid' || status === 'Completed'
-  ? 'bg-emerald-50 text-emerald-700' : status === 'Pending' || status === 'Maintenance' ? 'bg-amber-50 text-amber-700' : 'bg-blue-50 text-blue-700';
+const statusClass = (status: string) => status === 'Available' || status === 'Confirmed' || status === 'Completed'
+  ? 'bg-emerald-50 text-emerald-700' : status === 'Pending' || status === 'Maintenance' || status === 'Reserved' ? 'bg-amber-50 text-amber-700' : status === 'Cancelled' ? 'bg-red-50 text-red-700' : 'bg-blue-50 text-blue-700';
 
 export default function RentalApp({ showHero = true }: { showHero?: boolean }) {
   const [mode, setMode] = useState<'customer' | 'admin'>('customer');
@@ -80,7 +78,7 @@ export default function RentalApp({ showHero = true }: { showHero?: boolean }) {
 
   return (
     <main className="min-h-screen bg-[#f5f5f7] text-[#1d1d1f]">
-      <Header user={user} onSignOut={() => { signOutAuthUser(); setToast('Signed out.'); }} onAdmin={() => setMode('admin')} />
+      <Header user={user} onSignOut={() => { signOutUser(); setToast('Signed out.'); }} onAdmin={() => setMode('admin')} />
       {showHero && (
         <section className="mx-auto max-w-[1920px] px-5 pb-12 pt-8 lg:px-8 lg:pt-12">
           <div className="relative min-h-[520px] overflow-hidden rounded-[36px] bg-[#dfe8ef] shadow-[0_24px_80px_rgba(0,0,0,.12)]">
@@ -127,7 +125,7 @@ export default function RentalApp({ showHero = true }: { showHero?: boolean }) {
 }
 
 function Header({ user, onSignOut, onAdmin }: { user: AuthUser | null; onSignOut: () => void; onAdmin: () => void }) {
-  return <header className="sticky top-0 z-40 border-b border-black/5 bg-white/78 backdrop-blur-2xl"><div className="mx-auto flex h-16 max-w-[1920px] items-center justify-between px-5 lg:px-8"><a href="#" className="flex items-center gap-2 text-lg font-semibold tracking-tight"><span className="grid size-8 place-items-center rounded-full bg-black text-white"><CarFront className="size-4" /></span>Drift</a><nav className="hidden items-center gap-8 text-sm text-black/55 md:flex"><a href="#browse" className="hover:text-black">Vehicles</a><a href="#browse" className="hover:text-black">My bookings</a><a href="#browse" className="hover:text-black">How it works</a></nav><div className="flex items-center gap-2">{user ? <><span className="hidden rounded-full bg-[#f5f5f7] px-4 py-2 text-xs sm:block"><strong>{user.name}</strong></span><Button variant="ghost" onClick={onSignOut} className="h-9 rounded-full">Sign out</Button></> : <a className="rounded-full bg-[#0071e3] px-4 py-2 text-sm font-medium text-white" href="/login">Sign in</a>}{user?.role === 'admin' && <Button onClick={onAdmin} className="h-9 rounded-full bg-black px-4 text-white hover:bg-black/80 sm:px-5">Admin</Button>}</div></div></header>;
+  return <header className="sticky top-0 z-40 border-b border-black/5 bg-white/78 backdrop-blur-2xl"><div className="mx-auto flex h-16 max-w-[1920px] items-center justify-between px-5 lg:px-8"><a href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight"><span className="grid size-8 place-items-center rounded-full bg-black text-white"><CarFront className="size-4" /></span>Drift</a><nav className="hidden items-center gap-8 text-sm text-black/55 md:flex"><a href="#browse" className="hover:text-black">Vehicles</a><a href="#how-it-works" className="hover:text-black">How it works</a>{user && <a href="/account" className="hover:text-black">My bookings</a>}</nav><div className="flex items-center gap-2">{user ? <><a href="/account" className="hidden rounded-full bg-[#f5f5f7] px-4 py-2 text-xs sm:block"><strong>{user.name}</strong></a><Button variant="ghost" onClick={onSignOut} className="h-9 rounded-full">Sign out</Button></> : <a className="rounded-full bg-[#0071e3] px-4 py-2 text-sm font-medium text-white" href="/login">Sign in</a>}{user?.role === 'admin' && <Button onClick={onAdmin} className="h-9 rounded-full bg-black px-4 text-white hover:bg-black/80 sm:px-5">Admin</Button>}</div></div></header>;
 }
 function FilterSelect({ label, value, values, onChange }: { label: string; value: string; values: string[]; onChange: (value: string) => void }) {
   return <label className="rounded-2xl bg-[#f5f5f7] px-3 py-3"><span className="mb-1 block px-1 text-[11px] text-black/45">{label}</span><NativeSelect className="w-full" value={value} onChange={(e) => onChange(e.target.value)}>{values.map((item) => <NativeSelectOption key={item}>{item}</NativeSelectOption>)}</NativeSelect></label>;
