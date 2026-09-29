@@ -1,6 +1,6 @@
 import { ArrowLeft, CarFront } from 'lucide-react';
 
-export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
+export function AuthPage({ mode = 'login' }: { mode?: 'login' | 'register' } = {}) {
   return <main className="min-h-screen bg-[#f5f5f7] px-5 py-16 text-[#1d1d1f]">
     <section className="page-enter mx-auto max-w-lg rounded-[32px] bg-white p-8 shadow-sm sm:p-12">
       <a href="/" className="inline-flex items-center gap-2 text-sm text-black/55"><ArrowLeft className="size-4"/>Back to vehicles</a>
