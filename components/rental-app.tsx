@@ -163,9 +163,10 @@ function VehicleDialog({ vehicle, open, onOpenChange, onBook }: { vehicle: Vehic
 function VehicleGallery({ vehicle }: { vehicle: Vehicle }) {
   const [active, setActive] = useState(0);
   useEffect(() => setActive(0), [vehicle.id]);
+  const external = vehicle.image.startsWith('http');
   const slug = vehicle.image.split('/').at(-1)?.replace(/\.[^.]+$/, '') ?? '';
-  const images = [vehicle.image, ...[1, 2, 3].map((index) => `/vehicles/gallery/${slug}/${index}.jpg`)];
-  return <div className="bg-[#f5f5f7] p-3"><img src={images[active]} alt={`${vehicle.brand} ${vehicle.model} view ${active + 1}`} className="aspect-[16/7] w-full rounded-[22px] object-cover" /><div className="mt-3 grid grid-cols-4 gap-2">{images.map((image, index) => <button key={image} onClick={() => setActive(index)} className={`overflow-hidden rounded-xl border-2 transition ${active === index ? 'border-[#0071e3]' : 'border-transparent opacity-70 hover:opacity-100'}`} aria-label={`View image ${index + 1}`}><img src={image} alt="" className="aspect-[16/10] w-full object-cover" /></button>)}</div></div>;
+  const images = external ? [vehicle.image] : [vehicle.image, ...[1, 2, 3].map((index) => `/vehicles/gallery/${slug}/${index}.jpg`)];
+  return <div className="bg-[#f5f5f7] p-3"><img src={images[active]} alt={`${vehicle.brand} ${vehicle.model} view ${active + 1}`} className="aspect-[16/7] w-full rounded-[22px] object-cover" />{images.length > 1 && <div className="mt-3 grid grid-cols-4 gap-2">{images.map((image, index) => <button key={image} onClick={() => setActive(index)} className={`overflow-hidden rounded-xl border-2 transition ${active === index ? 'border-[#0071e3]' : 'border-transparent opacity-70 hover:opacity-100'}`} aria-label={`View image ${index + 1}`}><img src={image} alt="" className="aspect-[16/10] w-full object-cover" /></button>)}</div>}</div>;
 }
 
 function BookingDialog({ vehicle, user, open, onOpenChange }: { vehicle: Vehicle | null; user: AuthUser | null; open: boolean; onOpenChange: (open: boolean) => void }) {
