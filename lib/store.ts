@@ -9,7 +9,7 @@ export type Vehicle = {
   transmission: 'Manual' | 'Automatic';
   doors: number;
   colour: string;
-  status: 'Available' | 'Rented' | 'Maintenance';
+  status: 'Available' | 'Reserved' | 'Rented' | 'Maintenance';
   features: string[];
   image: string;
   description: string;
@@ -25,6 +25,8 @@ export type Booking = {
   endDate: string;
   pickupCity: string;
   returnCity: string;
+  extras: string[];
+  extrasCost: number;
   totalCost: number;
   status: 'Confirmed' | 'Pending' | 'Completed' | 'Cancelled';
 };
@@ -108,6 +110,21 @@ const marketAlignedRates: Record<number, number> = {
 };
 vehicles = vehicles.map((vehicle) => ({ ...vehicle, dailyRate: marketAlignedRates[vehicle.id] ?? vehicle.dailyRate }));
 
+export type RentalExtra = { id: string; label: string; pricing: 'daily' | 'flat'; price: number };
+
+export const rentalExtras: RentalExtra[] = [
+  { id: 'cover', label: 'Enhanced cover', pricing: 'daily', price: 120 },
+  { id: 'driver', label: 'Additional driver', pricing: 'daily', price: 80 },
+  { id: 'child-seat', label: 'Child seat', pricing: 'daily', price: 60 },
+  { id: 'gps', label: 'GPS unit', pricing: 'daily', price: 50 },
+  { id: 'mileage', label: 'Unlimited mileage', pricing: 'daily', price: 150 },
+  { id: 'delivery', label: 'Vehicle delivery', pricing: 'flat', price: 250 },
+];
+
+export function vehicleRating(id: number) {
+  return Math.min(5, 4.1 + ((id * 7) % 10) / 10);
+}
+
 export let bookings: Booking[] = [];
 
 export const customers: {id:string; name:string; email:string; phone:string; bookings:number}[] = [];
@@ -133,4 +150,11 @@ export function addBooking(booking: Omit<Booking, 'id' | 'status'>) {
   const created: Booking = { ...booking, id: `BK-${1049 + bookings.length}`, status: 'Confirmed' };
   bookings = [created, ...bookings];
   return created;
+}
+
+export function updateBookingStatus(id: string, status: Booking['status']) {
+  const booking = bookings.find((item) => item.id === id);
+  if (!booking) return null;
+  booking.status = status;
+  return booking;
 }
