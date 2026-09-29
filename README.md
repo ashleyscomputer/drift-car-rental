@@ -164,3 +164,5 @@ This repository is an educational project. Vehicle photography is used for educa
 
 
 <!-- vercel-deploy-trigger -->
+
+<!-- vercel-nitro-deploy-trigger -->
