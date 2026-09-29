@@ -162,3 +162,5 @@ Dashboard
 
 This repository is an educational project. Vehicle photography is used for educational demonstration. Model-specific replacement photography for vehicles 41–70 is sourced from Wikimedia Commons, with source/licence links available on the in-app **Photo Credits** page.
 
+
+<!-- vercel-deploy-trigger -->
