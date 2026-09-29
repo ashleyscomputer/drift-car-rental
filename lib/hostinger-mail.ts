@@ -5,7 +5,8 @@ const HOSTINGER_MAIL_API = 'https://api.mail.hostinger.com/api/v1';
 export async function sendBookingConfirmation(booking: Booking) {
   const token = process.env.HOSTINGER_MAIL_API_TOKEN;
   const mailboxId = process.env.HOSTINGER_MAILBOX_ID;
-  if (!token || !mailboxId) return false;
+  const fromAddress = process.env.HOSTINGER_MAIL_FROM_ADDRESS;
+  if (!token || !mailboxId || fromAddress !== 'ashley@kickstreet.store') return false;
 
   const extras = booking.extras?.length ? booking.extras.join(', ') : 'None';
   const text = [
