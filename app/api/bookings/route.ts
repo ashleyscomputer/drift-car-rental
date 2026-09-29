@@ -1,4 +1,5 @@
 import { addBooking, bookings, rentalExtras, updateBookingStatus, vehicles } from '@/lib/store';
+import { sendBookingConfirmation } from '@/lib/hostinger-mail';
 
 export async function GET(request: Request) {
   const email = new URL(request.url).searchParams.get('email')?.trim().toLowerCase();
@@ -42,7 +43,8 @@ export async function POST(request: Request) {
       extrasCost,
       totalCost,
     });
-    return Response.json(booking,{status:201});
+    const emailSent = await sendBookingConfirmation(booking).catch(() => false);
+    return Response.json({...booking,emailSent},{status:201});
   } catch {
     return Response.json({error:'Invalid booking request.'},{status:400});
   }
