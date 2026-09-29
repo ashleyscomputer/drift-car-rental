@@ -1,4 +1,4 @@
-export type DemoUser = { name: string; email: string; provider: 'email' | 'google' };
+export type DemoUser = { name: string; email: string; provider: 'email' };
 
 export const DEMO_USER_KEY = 'drift_demo_user';
 export const DEMO_ACCOUNT_KEY = 'drift_demo_account';
@@ -6,8 +6,9 @@ export const CHECKOUT_KEY = 'drift_checkout';
 export const ORDERS_KEY = 'drift_demo_orders';
 
 export function readDemoUser(): DemoUser | null {
-  if (typeof window === 'undefined') return null;
-  try { return JSON.parse(localStorage.getItem(DEMO_USER_KEY) || 'null'); } catch { return null; }
+  // Browser demo profiles are not authenticated MySQL accounts.
+  // Replace this with a server-validated session when account services are wired.
+  return null;
 }
 
 export function saveDemoUser(user: DemoUser) {
