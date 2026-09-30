@@ -17,6 +17,7 @@ Responses are JSON. Mutations require a matching Origin header. Authenticated ro
 | GET /api/bookings | Signed in | Own bookings; administrators see all. Email query parameters do not bypass ownership. |
 | POST /api/bookings | Customer-linked account | Saves reservation, extras, history and simulated payment transactionally |
 | PATCH /api/bookings | Owner/admin | Owner requests cancellation; admin makes valid status transitions |
+| GET /api/database/schema | Admin | Live schema: exact counts, column types, keys, indexes, CHECK constraints, FK rules and CREATE TABLE definitions; no row contents |
 | GET /api/database | Admin | Real table names, fields and row counts; no table mutation endpoint |
 | GET /api/reports | Admin | Paid non-demo revenue totals/months |
 

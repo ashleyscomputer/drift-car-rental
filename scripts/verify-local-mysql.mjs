@@ -15,13 +15,19 @@ const [originalCategories]=await db.execute("SELECT category_id FROM VehicleCate
 let vehicleId,branchId,extraId;
 try{
  await api('/api/bookings','GET',undefined,'',401);
+ await api('/api/database/schema','GET',undefined,'',401);
  const admin=await api('/api/auth/register','POST',{firstName:'Verification',lastName:tag,email:emails[0],password},'',201);
  const other=await api('/api/auth/register','POST',{firstName:'Verification',lastName:tag,email:emails[1],password},'',201);
  await api('/api/auth/login','POST',{email:emails[0],password:password+'x'},'',401);
  await api('/api/vehicles','POST',{},other.cookie,403);
+ await api('/api/database/schema','GET',undefined,other.cookie,403);
  await api('/api/catalogue','POST',{},admin.cookie,403);
  await db.execute("UPDATE AppUser SET role='Admin' WHERE login_email=?",[emails[0]]);
  const session=await api('/api/auth/session','GET',undefined,admin.cookie);assert.equal(session.data.user.role,'admin');
+ const schema=await api('/api/database/schema','GET',undefined,admin.cookie);
+ assert.ok(schema.data.tables.some(t=>t.name.toLowerCase()==='booking'&&t.ddl.startsWith('CREATE TABLE')&&t.columns.some(c=>c.key==='PRI')));
+ assert.ok(schema.data.relations.some(r=>r.table.toLowerCase()==='booking'&&r.targetTable.toLowerCase()==='vehicle'));
+ assert.ok(schema.data.tables.some(t=>t.checks.length>0));
  const branch=await api('/api/catalogue','POST',{kind:'branch',name:tag,province:tag,city:tag,address:'Temporary verification record'},admin.cookie,201);branchId=branch.data.id;
  const extra=await api('/api/catalogue','POST',{kind:'extra',name:tag,code:tag,price:50,pricing:'daily'},admin.cookie,201);extraId=extra.data.id;
  const vehicle={brand:tag,model:tag,year:2026,type:'Sedan',registration:tag,dailyRate:5010,transmission:'Automatic',doors:4,colour:'Verification',status:'Available',features:[],image:'',description:'Temporary verification record',branchId,tier:'Premium'};

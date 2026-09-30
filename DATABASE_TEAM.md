@@ -64,3 +64,8 @@ node --env-file=.env.local scripts/verify-local-mysql.mjs
 The integration test requires the running local app. It creates uniquely named temporary records and removes them in finally; do not interrupt it during execution. It checks authentication, permissions, server totals, overlap locking, concurrent retry deduplication, cancellation, demo payment status and logout. It never charges a card or sends mail.
 
 The repository-wide linter also reports pre-existing UI/Next.js convention issues. Type checking, local build and database integration checks are the relevant executed validation for this connection.
+
+## Presenting the database assignment
+Open Admin > Database to launch Database Studio. The live overview shows table, record, foreign-key and CHECK-constraint counts. Search the schema explorer and click a table or relationship-map node to inspect it. Columns show actual MySQL types, nullability, primary/foreign keys and computed-column rules. Integrity shows indexes and CHECK clauses; SQL definition shows SHOW CREATE TABLE output.
+
+Use Export schema to download the current structure for your presentation (no account or booking records are exported). The map focuses on the selected entity and its direct relationships; selecting another node changes focus. Refresh captures a new metadata snapshot. Add records expands the branch/extra forms.
