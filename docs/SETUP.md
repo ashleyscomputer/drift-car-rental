@@ -8,7 +8,7 @@ A fresh clone requires Node.js 22.13+, npm and MySQL 8.4:
 3. Configure `.env.local` from `.env.example`.
 4. Run `npm run dev:local` and open http://127.0.0.1:3000.
 5. Register your actual account and promote it using `npm run admin:promote -- YOUR-REGISTERED-EMAIL`.
-6. Add real branches and vehicles.
+6. Run `npm run fleet:import` to restore the approved 40-car catalogue and extras, or add your own branches and vehicles.
 
 For a local production build, run `npm run build:local` then `npm start`. The local server binds to 127.0.0.1. Do not run two servers on port 3000.
 

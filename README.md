@@ -28,7 +28,7 @@ Register your own account at /register. To enable its admin role from the projec
 npm run admin:promote -- YOUR-REGISTERED-EMAIL
 ```
 
-Add actual branches, optional extras and cars through the admin area. The catalogue starts empty. Stock image files are not seeded as rental inventory, and ratings appear only when stored published reviews exist.
+Restore the approved 40-car catalogue, bundled galleries, Kimberley branch and six rental extras with `npm run fleet:import`. The import is repeatable: existing registrations and extras are preserved. Add or edit fleet records through the admin area. Ratings appear only when stored published reviews exist.
 
 ## Implemented
 
@@ -52,7 +52,7 @@ The integration test requires the running local app. It creates temporary verifi
 
 ## Not yet available
 
-Real fleet/branch records and an administrator must be entered by the project team. Email delivery, password reset, email verification, licence verification and real payment collection are not enabled. Some branch/extra/gallery maintenance is done in MySQL Workbench.
+Import the supplied catalogue or enter your own fleet/branches, and register an administrator. Email delivery, password reset, email verification, licence verification and real payment collection are not enabled. Some branch/extra/gallery maintenance is done in MySQL Workbench.
 
 The Vercel site needs a remotely reachable MySQL database with TLS and server environment variables. Uploading this schema to GitHub does not host a database. Local `localhost` credentials cannot work from Vercel. Use `npm run build:vercel` for its build; the local connection has not been deployed online.
 

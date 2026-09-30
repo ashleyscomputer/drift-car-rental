@@ -34,7 +34,7 @@ Use **Admin > Vehicles** to add each actual car:
 
 Use MySQL Workbench for additional branch contacts, extra updates, seats, photo galleries and image credits. For additional photographs add VehicleImage rows with the vehicle_id, image_url, alt_text, sort_order and is_primary=0. Supply high-resolution originals; the app cannot turn a low-resolution photo into genuine 4K.
 
-No fleet, branch, customer, booking or review seed data is supplied. Missing records produce an honest empty state. Existing stock image files are not automatically imported as actual rental vehicles. Category/model/feature reference rows are created when an administrator saves real vehicle details.
+The owner-approved fleet is now supplied in database/fleet.json. Run `npm run fleet:import` to restore 40 vehicles, their 160 bundled images, features/rates, the Kimberley branch and six rental extras. This has already been done on the original development computer. Repeating it skips existing registrations and preserves edits. No customers, bookings, reviews or payments are seeded.
 
 Do not add plaintext passwords directly to AppUser; use registration. Customer is created together with AppUser in a transaction.
 
@@ -49,7 +49,7 @@ Do not add plaintext passwords directly to AppUser; use registration. Customer i
 - Booking records survive app restarts.
 
 ## Remaining setup
-- Register and promote your own admin, then enter your actual branches and fleet.
+- Register and promote your own admin, then import the supplied fleet or enter your own records. Review branch contacts and operational details.
 - Add verified business contact information, images and operational data.
 - Email delivery, password reset/email verification, actual payment collection and licence/identity verification are not enabled.
 - This connection is local only. Vercel cannot reach this computer using localhost. A public deployment needs a reachable hosted MySQL database with TLS and separate server-side environment variables; never copy local credentials into browser code.

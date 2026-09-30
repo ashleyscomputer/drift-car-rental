@@ -21,3 +21,9 @@ Booking writes lock the vehicle row before testing overlapping dates. Cancellati
 Only payments are simulated: Booking.is_demo=0, Payment.is_demo=1, Payment.method=Demo, Payment.status=DemoApproved. These approvals are not revenue. Passwords are salted scrypt hashes; sessions store token hashes.
 
 See ../DATABASE_TEAM.md for the full handover.
+
+## Restore the approved fleet
+
+After importing the schema and configuring .env.local, run `npm run fleet:import` from the project root. It reads database/fleet.json and adds 40 vehicles recovered from GitHub commit 61c5a20, 160 bundled gallery images, their features and rates, a Drift Kimberley branch, and six rental extras. The catalogue was restored at the project owner's request. Registrations/specifications are retained from that catalogue; verify them before any real-world rental operation.
+
+All newly imported cars begin Available. Historic sample Rented/Maintenance states, generated ratings, customers, bookings and payments are not imported. Existing registrations and extra codes are skipped, so repeating the import preserves edits and bookings. The entire import is transactional and protected against concurrent imports. Branch address/contact fields are left unset rather than invented.

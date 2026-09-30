@@ -20,7 +20,8 @@
     "build:vercel": "vite build --config vite.vercel.config.ts",
     "dev:local": "vite --config vite.local.config.ts",
     "build:local": "vite build --config vite.local.config.ts",
-    "admin:promote": "node --env-file=.env.local scripts/promote-admin.mjs"
+    "admin:promote": "node --env-file=.env.local scripts/promote-admin.mjs",
+    "fleet:import": "node --env-file=.env.local scripts/import-fleet.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",
