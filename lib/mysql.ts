@@ -1,18 +1,67 @@
-/** Server-side integration placeholder. Never import into client components.
- * The existing MySQL schema and credentials must be supplied before wiring
- * a connection pool, repositories, and authenticated account sessions.
- */
-export function getMySqlConfiguration() {
-  const { MYSQL_HOST, MYSQL_DATABASE, MYSQL_USER, MYSQL_PASSWORD } = process.env;
-  if (!MYSQL_HOST || !MYSQL_DATABASE || !MYSQL_USER || !MYSQL_PASSWORD) {
-    throw new Error('MySQL is not configured. Set the server-side MYSQL_* variables.');
-  }
-  return {
-    host: MYSQL_HOST,
+import mysql, {
+  type RowDataPacket,
+  type ResultSetHeader,
+  type PoolConnection,
+} from 'mysql2/promise';
+const state = globalThis as typeof globalThis & { driftPool?: mysql.Pool };
+export function pool() {
+  if (
+    !process.env.MYSQL_DATABASE ||
+    !process.env.MYSQL_USER ||
+    !process.env.MYSQL_PASSWORD
+  )
+    throw new Error('MySQL connection is not configured.');
+  return (state.driftPool ??= mysql.createPool({
+    host: process.env.MYSQL_HOST || 'localhost',
     port: Number(process.env.MYSQL_PORT || 3306),
-    database: MYSQL_DATABASE,
-    user: MYSQL_USER,
-    password: MYSQL_PASSWORD,
-    ssl: process.env.MYSQL_SSL !== 'false',
-  };
+    database: process.env.MYSQL_DATABASE,
+    user: process.env.MYSQL_USER,
+    password: process.env.MYSQL_PASSWORD,
+    connectionLimit: 5,
+    decimalNumbers: true,
+    dateStrings: true,
+    timezone: 'Z',
+    ssl:
+      process.env.MYSQL_SSL === 'false'
+        ? undefined
+        : { rejectUnauthorized: true },
+  }));
+}
+export async function rows<T>(
+  sql: string,
+  values: (string | number | boolean | Date | Buffer | null)[] = [],
+  connection?: PoolConnection,
+): Promise<T[]> {
+  const [result] = await (connection || pool()).execute<RowDataPacket[]>(
+    sql,
+    values,
+  );
+  return result as T[];
+}
+export async function write(
+  sql: string,
+  values: (string | number | boolean | Date | Buffer | null)[] = [],
+  connection?: PoolConnection,
+) {
+  const [result] = await (connection || pool()).execute<ResultSetHeader>(
+    sql,
+    values,
+  );
+  return result;
+}
+export async function transaction<T>(
+  fn: (connection: PoolConnection) => Promise<T>,
+): Promise<T> {
+  const c = await pool().getConnection();
+  try {
+    await c.beginTransaction();
+    const result = await fn(c);
+    await c.commit();
+    return result;
+  } catch (e) {
+    await c.rollback();
+    throw e;
+  } finally {
+    c.release();
+  }
 }

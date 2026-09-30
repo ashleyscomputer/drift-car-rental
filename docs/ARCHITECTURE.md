@@ -1,57 +1,20 @@
 # Architecture
 
-## System context
+Browser -> Vinext route handlers -> mysql2 connection pool -> MySQL/InnoDB.
 
-Drift is a single Vinext application containing both the browser interface and lightweight backend route handlers.
+- lib/store.ts defines shared types only; there is no seeded in-memory fleet.
+- lib/mysql.ts owns parameterized queries and transaction handling.
+- lib/server-auth.ts handles password hashes, cookie session lookup, authorization and errors.
+- lib/auth-service.ts implements registration/login; new registrations always have customer role.
+- lib/repository.ts loads the catalogue and owns booking/cancellation transactions.
+- lib/fleet-admin.ts validates and saves operational records.
+- database/Database_Updated.sql defines the 21-table fresh-install schema.
+- components/rental-app.tsx provides catalogue, booking form and administration.
+- components/checkout-page.tsx submits a stable checkout reference and expected total; the server approves only the payment simulation.
+- vite.local.config.ts uses Node for local MySQL access; vite.vercel.config.ts uses Nitro's Vercel build.
 
-```text
-Browser
-├── Customer catalogue and booking flow
-├── Admin operations dashboard
-└── Drift Guide
-    ├── Instant application FAQ and fleet recommendations
-    └── Web Worker → Transformers.js → ONNX model
+Booking writers lock the vehicle before checking date overlap. Booking, extras, payment and history are committed together. Session tokens are random, cookies are HttpOnly and only token hashes are stored in MySQL. Passwords use salted scrypt. Role checks and booking ownership checks run on the server.
 
-Application server
-├── /api/vehicles
-├── /api/bookings
-├── /api/database
-├── /api/reports
-└── lib/store.ts (seeded in-memory state)
-```
+Only the draft checkout is held in browser storage. Accounts, reservations and payments are database records. Real card processing, email/reset delivery and verified driver checks remain outside the implemented flow.
 
-## Important modules
-
-| Path | Responsibility |
-| --- | --- |
-| `app/page.tsx` | Application entry route |
-| `app/layout.tsx` | Metadata, fonts and global document layout |
-| `components/rental-app.tsx` | Customer and administrator experiences |
-| `components/chatbot.tsx` | Chat interface, app FAQ and worker coordination |
-| `workers/hf-chat.worker.ts` | Lazy browser inference with Transformers.js |
-| `lib/store.ts` | Types, seeded fleet, bookings and mutation functions |
-| `app/api/*/route.ts` | JSON endpoints used by the interface |
-| `public/vehicles` | Main and gallery vehicle imagery |
-
-## Data flow
-
-1. `RentalApp` requests vehicles, bookings and the demonstration schema.
-2. Route handlers return data from module-level arrays.
-3. Customer or admin actions call POST, PUT or DELETE handlers.
-4. The handler applies a store function and returns JSON.
-5. The client refreshes its view from the same endpoints.
-
-This structure deliberately resembles a persistent backend while keeping database work out of the current assignment phase.
-
-## AI flow
-
-Application questions are matched locally and can use the current fleet list for recommendations. Unmatched questions are posted to a dedicated Web Worker. The worker lazily creates one text-generation pipeline and reuses it until the page closes. Inference does not block the React main thread.
-
-## Database migration boundary
-
-The API contracts and `Vehicle`/`Booking` types form the main migration boundary. A future persistence layer can replace the arrays and mutation functions without redesigning the customer interface. See [DATABASE_ROADMAP.md](DATABASE_ROADMAP.md).
-
-## Security boundary
-
-No authentication or real financial operation exists. Admin controls, bookings and payments are demonstrations. A production version must authenticate every protected API route and validate all request bodies server-side.
-
+Drift Guide runs app answers locally and optionally downloads a Transformers.js model into a browser Web Worker. That optional model is separate from the database path.

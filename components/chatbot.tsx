@@ -14,6 +14,7 @@ function appAnswer(question: string, vehicles: Vehicle[]) {
   const cheapest = [...available].sort((a, b) => a.dailyRate - b.dailyRate).slice(0, 3);
   const premium = [...available].sort((a, b) => b.dailyRate - a.dailyRate).slice(0, 3);
 
+  if(!available.length && /(budget|cheap|premium|recommend)/.test(text))return 'No available vehicles are listed yet. Please check back after the fleet is added.';
   if (/(budget|cheap|afford|economy|lowest)/.test(text)) {
     return `For value, look at ${cheapest.map((car) => `${car.brand} ${car.model} from R${car.dailyRate}/day`).join(', ')}. Use the maximum-rate slider to narrow the catalogue further.`;
   }
@@ -21,7 +22,7 @@ function appAnswer(question: string, vehicles: Vehicle[]) {
     return `For a premium drive, consider ${premium.map((car) => `${car.brand} ${car.model} from R${car.dailyRate}/day`).join(', ')}. Open any card to compare its gallery and features.`;
   }
   if (/(book|booking|reserve|rental)/.test(text)) {
-    return 'Choose an available vehicle, open its details, select Book now, then set your dates and locations. The booking is created from server-validated pricing, and payment remains pending until a payment provider is connected.';
+    return 'Choose an available vehicle, open its details, select Book now, then set your dates and locations. The booking is created from server-validated pricing, and your demo payment is approved without charging money.';
   }
   if (/(price|rate|cost|quote)/.test(text)) {
     return 'Rates are market-aligned South African “from” prices per day. Your final real-world quote would depend on dates, branch, rental duration, insurance cover, mileage and availability.';
@@ -30,7 +31,7 @@ function appAnswer(question: string, vehicles: Vehicle[]) {
     return `Drift currently has ${vehicles.length} vehicles across value, comfort and premium tiers. You can filter by brand, model, type, year, transmission, features and daily rate.`;
   }
   if (/(login|account|firebase|database)/.test(text)) {
-    return 'Drift includes account sign-in with separate client and admin roles. Persistent database storage is the remaining backend integration, so current server data can reset until that connection is added.';
+    return 'Drift includes account sign-in with separate client and admin roles. Accounts and bookings are stored in MySQL.';
   }
   if (/(admin|dashboard|report)/.test(text)) {
     return 'The Admin portal includes fleet management, bookings, customers, payments, reports and database setup tools. Admin access is shown only to the admin account.';

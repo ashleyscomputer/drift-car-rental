@@ -1,19 +1,42 @@
-import { addVehicle, deleteVehicle, updateVehicle, vehicles, type Vehicle } from '@/lib/store';
-
+import { listVehicles } from '@/lib/repository';
+import { saveVehicle, archiveVehicle } from '@/lib/fleet-admin';
+import { requireUser, sameOrigin, failure } from '@/lib/server-auth';
 export async function GET() {
-  return Response.json(vehicles);
+  try {
+    return Response.json(await listVehicles(), {
+      headers: { 'Cache-Control': 'no-store' },
+    });
+  } catch (e) {
+    return failure(e);
+  }
 }
-
+async function save(request: Request, updating: boolean) {
+  try {
+    sameOrigin(request);
+    await requireUser(request, true);
+    return Response.json(await saveVehicle(await request.json(), updating), {
+      status: updating ? 200 : 201,
+    });
+  } catch (e) {
+    return failure(e);
+  }
+}
 export async function POST(request: Request) {
-  return Response.json(addVehicle(await request.json()), { status: 201 });
+  return save(request, false);
 }
-
 export async function PUT(request: Request) {
-  return Response.json(updateVehicle((await request.json()) as Vehicle));
+  return save(request, true);
 }
-
 export async function DELETE(request: Request) {
-  const { id } = await request.json() as {id:number};
-  deleteVehicle(Number(id));
-  return Response.json({ ok: true });
+  try {
+    sameOrigin(request);
+    await requireUser(request, true);
+    return Response.json(
+      await archiveVehicle(
+        Number(((await request.json()) as { id: number }).id),
+      ),
+    );
+  } catch (e) {
+    return failure(e);
+  }
 }

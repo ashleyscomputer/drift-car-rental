@@ -12,12 +12,15 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "vinext dev",
-    "build": "vinext build",
-    "start": "wrangler dev --config dist/server/wrangler.json",
+    "dev": "vite --config vite.local.config.ts",
+    "build": "vite build --config vite.local.config.ts",
+    "start": "node --env-file=.env.local scripts/start-local.mjs",
     "lint": "oxlint app components lib hooks workers",
     "format": "oxfmt",
-    "build:vercel": "vite build --config vite.vercel.config.ts"
+    "build:vercel": "vite build --config vite.vercel.config.ts",
+    "dev:local": "vite --config vite.local.config.ts",
+    "build:local": "vite build --config vite.local.config.ts",
+    "admin:promote": "node --env-file=.env.local scripts/promote-admin.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",
@@ -33,6 +36,7 @@
     "embla-carousel-react": "8.5.2",
     "input-otp": "1.4.2",
     "lucide-react": "1.31.0",
+    "mysql2": "^3.24.5",
     "react": "19.2.6",
     "react-day-picker": "9.8.1",
     "react-dom": "19.2.6",

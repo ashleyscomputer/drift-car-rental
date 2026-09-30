@@ -39,3 +39,8 @@ next-env.d.ts
 /work/
 /public/cinematic/*.jpg
 .env*.local
+
+# Local Node build
+/.output/
+/tmp/
+*.tsbuildinfo

@@ -1,77 +1,27 @@
 # API reference
 
-All endpoints return JSON. The current implementation uses in-memory records and is intended for demonstration, not untrusted production traffic.
+Responses are JSON. Mutations require a matching Origin header. Authenticated routes use the HttpOnly drift_session cookie; browser storage roles are never authoritative.
 
-## Vehicles
+| Endpoint | Access | Behavior |
+| --- | --- | --- |
+| POST /api/auth/register | Public | firstName, lastName, email, password (12–128 characters), optional phone; creates customer and account |
+| POST /api/auth/login | Public | email/password; starts a server session |
+| GET /api/auth/session | Public | Current user or null |
+| POST /api/auth/logout | Session | Revokes session and expires cookie |
+| GET /api/vehicles | Public | Active stored fleet with actual images/features/review averages |
+| POST /api/vehicles | Admin | Creates a vehicle |
+| PUT /api/vehicles | Admin | Updates the vehicle identified by id |
+| DELETE /api/vehicles | Admin | Archives id; refuses vehicles with active bookings |
+| GET /api/catalogue | Public | Active branches and extras |
+| POST /api/catalogue | Admin | Adds kind=branch (name, city, province, address) or kind=extra (code, name, price, pricing=daily/once) |
+| GET /api/bookings | Signed in | Own bookings; administrators see all. Email query parameters do not bypass ownership. |
+| POST /api/bookings | Customer-linked account | Saves reservation, extras, history and simulated payment transactionally |
+| PATCH /api/bookings | Owner/admin | Owner requests cancellation; admin makes valid status transitions |
+| GET /api/database | Admin | Real table names, fields and row counts; no table mutation endpoint |
+| GET /api/reports | Admin | Paid non-demo revenue totals/months |
 
-### `GET /api/vehicles`
+Booking requests contain vehicleId, startDate, endDate, pickupBranchId, returnBranchId, extras (codes), idempotencyKey (UUID), expectedTotal. Identity and prices come from the server. A changed price or overlap returns 409. Dates are inclusive for availability; charged days are max(1, end minus start).
 
-Returns the complete fleet.
+POST /api/bookings returns paymentStatus=DemoApproved. It never accepts card information or charges money. Booking.is_demo=0 and Payment.is_demo=1. Do not represent simulated approval as paid revenue.
 
-### `POST /api/vehicles`
-
-Creates a vehicle. The server assigns the numeric `id`.
-
-### `PUT /api/vehicles`
-
-Replaces a vehicle matching the supplied `id`.
-
-### `DELETE /api/vehicles`
-
-```json
-{ "id": 21 }
-```
-
-Removes the matching vehicle and returns `{ "ok": true }`.
-
-## Bookings
-
-### `GET /api/bookings`
-
-Returns all demonstration bookings.
-
-### `POST /api/bookings`
-
-Creates a booking, assigns a reference and sets its initial status to `Confirmed`.
-
-Example body:
-
-```json
-{
-  "customer": "Demo Customer",
-  "email": "demo@example.com",
-  "vehicleId": 1,
-  "vehicle": "Volkswagen Polo TDI",
-  "startDate": "2026-09-05",
-  "endDate": "2026-09-08",
-  "pickupCity": "Kimberley",
-  "returnCity": "Kimberley",
-  "totalCost": 1185
-}
-```
-
-## Demonstration database schema
-
-### `GET /api/database`
-
-Returns the proposed assignment tables, row counts and fields.
-
-### `POST /api/database`
-
-Creates an in-memory schema entry with `name` and `fields`.
-
-### `DELETE /api/database`
-
-```json
-{ "name": "ExampleTable" }
-```
-
-## Reports
-
-### `GET /api/reports`
-
-Returns calculated revenue, fleet utilisation, booking-status totals and a demonstration top-vehicle list.
-
-## Production requirements
-
-Before exposing these endpoints publicly with persistent data, add schema validation, authentication, role authorization, rate limiting, audit logging, structured errors and database transactions.
+See lib/fleet-admin.ts for full vehicle validation and lib/repository.ts for booking transitions. Error responses expose a message, not SQL details or credentials.
