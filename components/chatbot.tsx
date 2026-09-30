@@ -22,7 +22,7 @@ function appAnswer(question: string, vehicles: Vehicle[]) {
     return `For a premium drive, consider ${premium.map((car) => `${car.brand} ${car.model} from R${car.dailyRate}/day`).join(', ')}. Open any card to compare its gallery and features.`;
   }
   if (/(book|booking|reserve|rental)/.test(text)) {
-    return 'Choose an available vehicle, open its details, select Book now, then set your dates and locations. The booking is created from server-validated pricing, and your demo payment is approved without charging money.';
+    return 'Choose an available vehicle, open its details, select Book now, then set your dates and locations. The booking is created from server-validated pricing, and your payment is approved automatically without charging money.';
   }
   if (/(price|rate|cost|quote)/.test(text)) {
     return 'Rates are market-aligned South African “from” prices per day. Your final real-world quote would depend on dates, branch, rental duration, insurance cover, mileage and availability.';

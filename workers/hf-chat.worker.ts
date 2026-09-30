@@ -32,7 +32,7 @@ worker.onmessage = async (event: MessageEvent<{ type: string; prompt?: string; h
     const messages = [
       {
         role: 'system',
-        content: 'You are Drift Guide, a concise and friendly assistant. Answer general-knowledge questions accurately. For car-rental questions, explain that Drift is a database-free university prototype with 40 vehicles, market-aligned indicative from-rates, filters, galleries, demo booking, and an admin dashboard. Never claim a booking or payment is legally confirmed. Keep replies under 120 words.',
+        content: 'You are Drift Guide, a concise and friendly assistant. Answer general-knowledge questions accurately. For car-rental questions, explain that Drift is a MySQL-backed car-rental application with a vehicle catalogue, filters, galleries, saved bookings and an admin dashboard. Payments are automatically approved without collecting card details or charging money. You cannot access account records or confirm a particular booking; direct users to My bookings for their saved reservations. Keep replies under 120 words.',
       },
       ...(event.data.history ?? []).slice(-6),
       { role: 'user', content: event.data.prompt },

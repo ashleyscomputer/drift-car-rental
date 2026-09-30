@@ -52,8 +52,8 @@ The integration test requires the running local app. It creates temporary verifi
 
 ## Not yet available
 
-Import the supplied catalogue or enter your own fleet/branches, and register an administrator. Email delivery, password reset, email verification, licence verification and real payment collection are not enabled. Some branch/extra/gallery maintenance is done in MySQL Workbench.
+The local installation has the 40-car catalogue and an administrator account. Email delivery, password reset, email verification, licence verification and real payment collection are not enabled. Some branch/extra/gallery maintenance is done in MySQL Workbench.
 
-The Vercel site needs a remotely reachable MySQL database with TLS and server environment variables. Uploading this schema to GitHub does not host a database. Local `localhost` credentials cannot work from Vercel. Use `npm run build:vercel` for its build; the local connection has not been deployed online.
+The app currently runs on this computer. Online deployment is outside the current scope. GitHub stores the code and schema; it does not host the running app or local database.
 
 Drift Guide's general-knowledge model downloads separately in the browser and depends on browser resources/network access.

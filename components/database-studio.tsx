@@ -75,7 +75,7 @@ const descriptions: Record<string, string> = {
   appuser:
     'Account identity and role. Password hashes are stored here; session tokens are stored as hashes in a separate table.',
   payment:
-    'Payment events are separate from reservations. DemoApproved records represent simulated approvals, not collected revenue.',
+    'Payment events are separate from reservations. Automatically approved payments do not represent collected revenue.',
   vehiclefeature:
     'A junction table resolves the many-to-many relationship between vehicles and features.',
   bookingextra:

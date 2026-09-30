@@ -4,5 +4,5 @@ export default function FaqPage(){return <InfoPage eyebrow="FAQ" title="Question
  {title:'How does availability work?',paragraphs:['The server checks vehicle status and overlapping dates before saving a booking. Pick-up and return dates are inclusive for availability.']},
  {title:'Can I add extras?',paragraphs:['Available extras and prices are loaded from the database. Your total is recalculated at checkout.']},
  {title:'How do cancellations work?',paragraphs:['Request cancellation from My Drift. An administrator must approve the request before the vehicle is released.']},
- {title:'What happens when I pay?',paragraphs:['The payment screen approves a simulated payment and saves the reservation in MySQL. No card details are collected and no money is charged.']}
+ {title:'What happens when I pay?',paragraphs:['Your payment is approved automatically and your reservation is saved. No card details are collected and no money is charged.']}
  ]}/>;}
