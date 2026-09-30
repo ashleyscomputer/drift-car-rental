@@ -241,7 +241,7 @@ export function DatabaseStudio({ onSaved }: { onSaved: () => Promise<void> }) {
                 LIVE SCHEMA <span className="db-live-divider" /> MySQL{' '}
                 {schema.version.split('-')[0]}
               </div>
-              <h2>Connected by design.</h2>
+              <h2>Your data. Beautifully connected.</h2>
               <p>
                 One relational system. Every vehicle, customer and reservation
                 connected through enforced keys.
@@ -256,21 +256,8 @@ export function DatabaseStudio({ onSaved }: { onSaved: () => Promise<void> }) {
                 </span>
               </div>
             </div>
-            <div className="db-orbit" aria-hidden="true">
-              <div className="db-orbit-ring db-orbit-ring-one" />
-              <div className="db-orbit-ring db-orbit-ring-two" />
-              <div className="db-orbit-center">
-                <Database size={39} />
-              </div>
-              <span className="db-orbit-label db-orbit-label-one">
-                <KeyRound size={13} />
-                PRIMARY KEY
-              </span>
-              <span className="db-orbit-label db-orbit-label-two">
-                <Link2 size={13} />
-                FOREIGN KEY
-              </span>
-              <span className="db-orbit-dot" />
+            <div className="db-summary-mark" aria-hidden="true">
+              <Database size={38} strokeWidth={1.2} />
             </div>
             <div className="db-hero-bottom">
               <span>
@@ -774,8 +761,8 @@ function RelationMap({
           >
             <defs>
               <linearGradient id="db-line">
-                <stop stopColor="#376760" />
-                <stop offset="1" stopColor="#70d4c0" />
+                <stop stopColor="#c3ccd9" />
+                <stop offset="1" stopColor="#adc8e7" />
               </linearGradient>
             </defs>
             {parents.map((n, i) => (
