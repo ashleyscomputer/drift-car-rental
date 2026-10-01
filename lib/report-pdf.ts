@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { pdfLayout, pdfMoney as money } from './pdf-layout';
 
 export const reportTitles = {
   summary: 'Operations report',
@@ -22,36 +22,11 @@ export type ReportData = {
 };
 
 export async function createReportPdf(kind: ReportKind, data: ReportData) {
-  const doc = await PDFDocument.create();
-  const regular = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
-  doc.setTitle(`Drift - ${reportTitles[kind]}`);
-  doc.setAuthor('Drift Car Rental');
-  let page = doc.addPage([595.28, 841.89]);
-  let y = 785;
-  const clean = (s: string) => s.replace(/[\u00a0\u202f]/g, ' ').replace(/[^\x20-\x7e]/g, '-');
-  function line(text: string, size = 11, strong = false) {
-    if (y < 70) {
-      page = doc.addPage([595.28, 841.89]);
-      y = 785;
-    }
-    page.drawText(clean(text), {
-      x: 48,
-      y,
-      size,
-      font: strong ? bold : regular,
-      color: rgb(0.11, 0.11, 0.13),
-    });
-    y -= size + 10;
-  }
-  function section(title: string) {
-    y -= 14;
-    line(title, 15, true);
-  }
-  const money = (n: number) =>
-    `R ${Number(n).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const { line, space, section, ensureRoom, save } = await pdfLayout(
+    reportTitles[kind],
+  );
   line('DRIFT / ADMIN REPORTS', 10, true);
-  y -= 14;
+  space(14);
   line(reportTitles[kind], 28, true);
   line(`Generated: ${data.generatedAt} UTC`, 9);
   line('All-time records | Current MySQL snapshot', 10);
@@ -100,26 +75,10 @@ export async function createReportPdf(kind: ReportKind, data: ReportData) {
     line('Top 10 by reservation count, including all booking statuses.', 9);
     if (!data.topVehicles.length) line('No bookings recorded yet.');
     for (const [i, v] of data.topVehicles.entries()) {
-      if (y < 115) { page = doc.addPage([595.28, 841.89]); y = 785; }
+      ensureRoom(115);
       line(`${i + 1}. Vehicle #${v.vehicle_id} / ${v.registration}`, 11, true);
       line(`    ${v.count} reservations | Booking value ${money(v.value)}`, 10);
     }
   }
-  const pages = doc.getPages();
-  pages.forEach((p, i) => {
-    p.drawLine({
-      start: { x: 48, y: 45 },
-      end: { x: 547, y: 45 },
-      color: rgb(0.87, 0.88, 0.9),
-      thickness: 0.5,
-    });
-    p.drawText(`Drift Car Rental | ${i + 1} / ${pages.length}`, {
-      x: 48,
-      y: 29,
-      size: 9,
-      font: regular,
-      color: rgb(0.4, 0.4, 0.44),
-    });
-  });
-  return doc.save();
+  return save();
 }

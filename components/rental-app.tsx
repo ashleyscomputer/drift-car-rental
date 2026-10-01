@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { Textarea } from '@/components/ui/textarea';
+import { downloadPdf } from '@/lib/download';
 import { DatabaseStudio } from '@/components/database-studio';
 import { Chatbot } from '@/components/chatbot';
 import { type Catalogue, type Booking, type Vehicle } from '@/lib/store';
@@ -280,13 +281,7 @@ function Reports({ bookings, vehicles, setToast }: { bookings: Booking[]; vehicl
     setDownloading(true);
     try {
       const kind = title === 'Operations report' ? 'summary' : title.toLowerCase().replaceAll(' ', '-');
-      const response = await fetch(`/api/reports/pdf?kind=${kind}`, { cache: 'no-store' });
-      if (!response.ok) { const error = await response.json() as { error?: string }; throw new Error(error.error || 'Report could not be generated.'); }
-      const url = URL.createObjectURL(await response.blob());
-      const link = document.createElement('a');
-      link.href = url; link.download = `drift-${kind}.pdf`;
-      document.body.appendChild(link); link.click(); link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      await downloadPdf(`/api/reports/pdf?kind=${kind}`, `drift-${kind}.pdf`);
       setToast(`${title} PDF downloaded.`);
     } catch (error) { setToast(error instanceof Error ? error.message : 'Report could not be generated.'); }
     finally { setDownloading(false); }

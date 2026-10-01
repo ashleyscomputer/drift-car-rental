@@ -22,6 +22,7 @@ import {
   LockKeyhole,
 } from 'lucide-react';
 import { TableWorkspace } from './table-workspace';
+import { saveFile } from '@/lib/download';
 import { CatalogueSetup } from './catalogue-setup';
 import type { DatabaseSchema, SchemaTable } from '@/lib/database-schema';
 
@@ -90,14 +91,6 @@ const descriptions: Record<string, string> = {
   vehicleimage:
     'A separate image collection supports multiple photographs per vehicle, ordering and source credits.',
 };
-function saveFile(name: string, content: string, type: string) {
-  const url = URL.createObjectURL(new Blob([content], { type }));
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = name;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
 async function readSchema(signal?: AbortSignal) {
   const response = await fetch('/api/database/schema', {
     cache: 'no-store',

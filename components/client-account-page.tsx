@@ -5,6 +5,7 @@ import { ArrowLeft, CalendarDays, CarFront, CheckCircle2, CircleUserRound, Downl
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { readAuthUser, signOutUser, type AuthUser } from '@/lib/auth';
+import { downloadPdf } from '@/lib/download';
 import type { Booking } from '@/lib/store';
 
 const money = (value:number) => 'R' + value.toLocaleString('en-ZA');
@@ -19,9 +20,7 @@ export function ClientAccountPage() {
   const download = async (reference?:string) => {
     setDownloading(true);setError('');
     try {
-      const response = await fetch('/api/account/documents'+(reference?'?booking='+encodeURIComponent(reference):''),{cache:'no-store'});
-      if(!response.ok){const data=await response.json() as {error?:string};throw new Error(data.error||'Document could not be downloaded.');}
-      const url=URL.createObjectURL(await response.blob());const link=document.createElement('a');link.href=url;link.download=reference?`drift-receipt-${reference}.pdf`:'drift-my-bookings.pdf';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+      await downloadPdf('/api/account/documents'+(reference?'?booking='+encodeURIComponent(reference):''), reference?`drift-receipt-${reference}.pdf`:'drift-my-bookings.pdf');
     }catch(e){setError(e instanceof Error?e.message:'Document could not be downloaded.');}finally{setDownloading(false);}
   };
 

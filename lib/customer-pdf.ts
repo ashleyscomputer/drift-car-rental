@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { pdfLayout, pdfMoney as money } from './pdf-layout';
 export type CustomerBookingDocument = {
   booking_id: number;
   reference: string;
@@ -33,48 +33,10 @@ export async function customerPdf(
   extras: CustomerExtraDocument[],
   receipt: boolean,
 ) {
-  const doc = await PDFDocument.create();
-  const regular = await doc.embedFont(StandardFonts.Helvetica),
-    bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const title = receipt ? 'Booking receipt' : 'My booking report';
-  doc.setTitle(`Drift - ${title}`);
-  doc.setAuthor('Drift Car Rental');
-  let page = doc.addPage([595.28, 841.89]),
-    y = 790;
-  const clean = (s: string) =>
-    s
-      .normalize('NFKD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/[\u00a0\u202f]/g, ' ')
-      .replace(/[^\x20-\x7e]/g, '-');
-  function line(text: string, size = 11, strong = false) {
-    const font = strong ? bold : regular;
-    let part = '';
-    const draw = () => {
-      if (y < 70) {
-        page = doc.addPage([595.28, 841.89]);
-        y = 790;
-      }
-      page.drawText(part, {
-        x: 48,
-        y,
-        size,
-        font,
-        color: rgb(0.11, 0.11, 0.13),
-      });
-      y -= size + 9;
-      part = '';
-    };
-    for (const char of clean(text)) {
-      if (font.widthOfTextAtSize(part + char, size) > 499) draw();
-      part += char;
-    }
-    draw();
-  }
-  const money = (n: number) =>
-    `R ${Number(n).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  const { line, space, ensureRoom, save } = await pdfLayout(title);
   line('DRIFT / CUSTOMER DOCUMENTS', 10, true);
-  y -= 14;
+  space(14);
   line(title, 26, true);
   line(
     'Generated: ' +
@@ -83,7 +45,7 @@ export async function customerPdf(
     9,
   );
   line('Account: ' + name);
-  y -= 8;
+  space(8);
   if (!receipt) {
     line(`Reservations: ${bookings.length}`, 13, true);
     line(
@@ -97,11 +59,8 @@ export async function customerPdf(
   }
   if (!bookings.length) line('No bookings recorded yet.');
   for (const b of bookings) {
-    if (y < 230) {
-      page = doc.addPage([595.28, 841.89]);
-      y = 790;
-    }
-    y -= 14;
+    ensureRoom(230);
+    space(14);
     line(b.vehicle, 16, true);
     line('Booking reference: ' + b.reference, 10);
     line('Booking status: ' + b.status);
@@ -137,25 +96,11 @@ export async function customerPdf(
     if (b.payment_status === 'DemoApproved')
       line('Automatically approved. No money was charged.', 10);
   }
-  y -= 10;
+  space(10);
   line('This document records your reservation and its current status.', 9);
   line(
     'Automatic approval is not proof of payment. Cancelled bookings do not permit collection of a vehicle.',
     9,
   );
-  doc.getPages().forEach((p, i) => {
-    p.drawLine({
-      start: { x: 48, y: 45 },
-      end: { x: 547, y: 45 },
-      color: rgb(0.87, 0.88, 0.9),
-      thickness: 0.5,
-    });
-    p.drawText(`Drift Car Rental | ${i + 1} / ${doc.getPageCount()}`, {
-      x: 48,
-      y: 29,
-      size: 9,
-      font: regular,
-    });
-  });
-  return doc.save();
+  return save();
 }
