@@ -17,6 +17,7 @@ try{
  await api('/api/bookings','GET',undefined,'',401);
  await api('/api/database/schema','GET',undefined,'',401);
  await api('/api/reports/pdf','GET',undefined,'',401);
+ await api('/api/account/documents','GET',undefined,'',401);
  const admin=await api('/api/auth/register','POST',{firstName:'Verification',lastName:tag,email:emails[0],password},'',201);
  const other=await api('/api/auth/register','POST',{firstName:'Verification',lastName:tag,email:emails[1],password},'',201);
  await api('/api/auth/login','POST',{email:emails[0],password:password+'x'},'',401);
@@ -56,6 +57,23 @@ try{
  const pair=await Promise.all([api('/api/bookings','POST',booking,other.cookie,201),api('/api/bookings','POST',booking,other.cookie,201)]);
  assert.equal(pair[0].data.id,pair[1].data.id);assert.equal(pair[0].data.totalCost,10120);assert.equal(pair[0].data.paymentStatus,'DemoApproved');
  const id=pair[0].data.id;
+ await api('/api/account/documents?booking='+id,'GET',undefined,admin.cookie,404);
+ await api('/api/account/documents?booking=invalid','GET',undefined,other.cookie,400);
+ for(const [suffix,file] of [['?booking='+id,'receipt'],['','report']]){
+  const document=await fetch(base+'/api/account/documents'+suffix,{headers:{Cookie:other.cookie}});
+  assert.equal(document.status,200);assert.equal(document.headers.get('content-type'),'application/pdf');
+  assert.equal(document.headers.get('cache-control'),'private, no-store');
+  const bytes=Buffer.from(await document.arrayBuffer());assert.equal(bytes.subarray(0,5).toString(),'%PDF-');
+  await writeFile('tmp/customer-'+file+'-verified.pdf',bytes);
+ }
+ if(process.argv.includes('--receipts-browser')){
+  await writeFile('tmp/receipt-browser-fixture.json',JSON.stringify({email:emails[1],password,reference:id}));
+  console.log('Receipt browser fixture ready.');
+  const deadline=Date.now()+600000;
+  while(Date.now()<deadline){try{await access('tmp/receipt-browser-done');break;}catch{await new Promise(r=>setTimeout(r,500));}}
+  for(const path of ['tmp/receipt-browser-fixture.json','tmp/receipt-browser-done'])await unlink(path).catch(()=>{});
+ }
+
  await api('/api/bookings','POST',{...booking,idempotencyKey:randomUUID()},other.cookie,409);
  const own=await api('/api/bookings','GET',undefined,other.cookie);assert.ok(own.data.some(b=>b.id===id));assert.equal(own.data[0].paymentStatus,'DemoApproved');
  const [payments]=await db.execute('SELECT p.status,p.is_demo,b.is_demo booking_demo FROM Payment p JOIN Booking b ON b.booking_id=p.booking_id WHERE b.booking_reference=?',[id]);
@@ -64,6 +82,7 @@ try{
  await api('/api/bookings','PATCH',{id,status:'Cancellation Requested'},other.cookie);
  await api('/api/bookings','POST',{...booking,idempotencyKey:randomUUID()},other.cookie,409);
  await api('/api/bookings','PATCH',{id,status:'Cancelled'},admin.cookie);
+ const cancelledReceipt=await fetch(base+'/api/account/documents?booking='+id,{headers:{Cookie:other.cookie}});assert.equal(cancelledReceipt.status,200);await writeFile('tmp/customer-cancelled-verified.pdf',Buffer.from(await cancelledReceipt.arrayBuffer()));
  await api('/api/bookings','POST',{...booking,idempotencyKey:randomUUID()},other.cookie,201);
  await api('/api/vehicles','DELETE',{id:vehicleId},admin.cookie,409);
  const report=await api('/api/reports','GET',undefined,admin.cookie);assert.ok(report.data.revenue.total>=0);

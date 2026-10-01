@@ -39,3 +39,7 @@ GET /api/reports/pdf is admin-only and returns a downloadable PDF from a fresh d
 - DELETE: `{table,id}` deletes a record; `{table,confirm:table}` drops the table after exact name confirmation.
 
 The app account needs CREATE/DROP permissions for table operations. Run `scripts/enable-table-management.ps1` locally using the root password prompt. This is an assignment table builder, not an unrestricted SQL console or a migration editor for the protected core schema.
+
+## Customer PDF documents
+
+GET /api/account/documents downloads the signed-in customer's all-time booking report. Add `?booking=BK-...` for an itemized receipt for one owned booking. Both current and cancelled reservations are supported. Identity is derived exclusively from the session/customer ID, including for administrator accounts; foreign/nonexistent references return 404. Guests receive 401. PDFs use private, no-store headers and distinguish booking value from collected payments. A receipt for an automatic approval states that no money was charged.
