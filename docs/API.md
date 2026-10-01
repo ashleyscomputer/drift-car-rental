@@ -28,3 +28,14 @@ POST /api/bookings returns paymentStatus=DemoApproved. It never accepts card inf
 See lib/fleet-admin.ts for full vehicle validation and lib/repository.ts for booking transitions. Error responses expose a message, not SQL details or credentials.
 
 GET /api/reports/pdf is admin-only and returns a downloadable PDF from a fresh database snapshot. Optional kind: summary (default), booking-value, fleet-utilisation, booking-status, top-vehicles. Reports cover all-time reservations, including cancellations; fleet counts include active vehicles only. Automatic approvals are excluded from collected payments. Invalid kinds return 400.
+
+## Administrator-created tables
+
+`/api/database/tables` requires an administrator session for every method; writes also require a matching Origin. Core tables cannot be accessed through this record editor.
+
+- GET: list `custom_` tables; optional `?table=custom_name` returns columns and latest 100 records.
+- POST: `{name, columns:[{name,type}]}` creates a real prefixed table with an automatic `id` primary key. Types: text, number, decimal, date; 1-8 columns.
+- PATCH: `{table, values, id?}` inserts or updates a record. Blank fields become NULL. Identifiers and numeric/date values are validated; values are SQL parameters.
+- DELETE: `{table,id}` deletes a record; `{table,confirm:table}` drops the table after exact name confirmation.
+
+The app account needs CREATE/DROP permissions for table operations. Run `scripts/enable-table-management.ps1` locally using the root password prompt. This is an assignment table builder, not an unrestricted SQL console or a migration editor for the protected core schema.

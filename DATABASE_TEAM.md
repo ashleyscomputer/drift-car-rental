@@ -69,3 +69,9 @@ The repository-wide linter also reports pre-existing UI/Next.js convention issue
 Open Admin > Database to launch Database Studio. The live overview shows table, record, foreign-key and CHECK-constraint counts. Search the schema explorer and click a table or relationship-map node to inspect it. Columns show actual MySQL types, nullability, primary/foreign keys and computed-column rules. Integrity shows indexes and CHECK clauses; SQL definition shows SHOW CREATE TABLE output.
 
 Use Export schema to download the current structure for your presentation (no account or booking records are exported). The map focuses on the selected entity and its direct relationships; selecting another node changes focus. Refresh captures a new metadata snapshot. Add records expands the branch/extra forms.
+
+## Rubric-specific presentation
+
+See [rubric alignment](docs/RUBRIC_ALIGNMENT.md). Admin > Database now includes Manage your tables: create a table, add/edit/delete its records, then remove the table by typing its full name. Admin > Reports provides four distinct PDF reports plus a summary. Existing installations need the local root-password script `scripts/enable-table-management.ps1` once to enable CREATE/DROP privileges. Fresh installations use the updated setup script.
+
+The revised project report includes UNF -> 1NF -> 2NF -> 3NF and all 24 core foreign-key relationships. Read the normalization exceptions before presenting; historical snapshots and derived totals must be explained rather than claimed to be strictly normalized physical columns.

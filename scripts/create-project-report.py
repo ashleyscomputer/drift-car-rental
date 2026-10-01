@@ -36,16 +36,16 @@ def code(text): story.append(Preformatted(text,styles['CodeDrift']))
 
 page(1,'Drift Car Rental')
 story.append(p('Database design &amp;<br/>implementation report','TitleDrift'))
-body('Database module project | 30 September 2026')
-body('<b>Implementation snapshot:</b> GitHub branch <font color="#0071e3">codex/mysql-persistence</font>, application commit <b>5e51535</b>. This report describes the implemented local system, rather than a proposed design.')
+body('Database module project | 1 October 2026')
+body('<b>Implementation snapshot:</b> GitHub branch <font color="#0071e3">codex/mysql-persistence</font>, baseline application commit <b>d683da8</b>, with the rubric-alignment additions described in the appendix. This report describes the implemented local system, rather than a proposed design.')
 table(['Relational tables','Foreign keys','CHECK constraints','Fleet vehicles'],[['21','24','32','40']],[123,123,123,130])
 sub('Project purpose')
 body('Drift connects a car-rental website to a persistent MySQL database. Customers browse the catalogue, register, sign in, select rental dates and extras, and create reservations. Administrators manage fleet records, review cancellation requests and inspect the live database structure.')
 sub('Current outcome')
 body('The local application stores accounts, vehicles, bookings and payment records in MySQL. Checkout approves payments automatically and saves the reservation; it does not collect card information or charge money. These approvals are excluded from collected-revenue reports.')
 sub('Report guide')
-table(['Page','Content'],[['2-3','Architecture, requirements and relational model'],['4-5','Relationships, integrity, transactions and security'],['6-7','SQL examples and verification evidence'],['8','Handover, limitations and project references']],[45,454])
-body('Prepared from the project source, schema and local verification results. Group names, student numbers and the marking rubric were not supplied; this report makes no claim of rubric compliance.')
+table(['Page','Content'],[['2-3','Architecture, requirements and relational model'],['4-5','Relationships, integrity, transactions and security'],['6-7','SQL examples and verification evidence'],['8','Handover, limitations and project references'],['9-14','Rubric mapping, normalization and complete ER model']],[45,454])
+body('Prepared from the project source, schema and local verification results. Group names and student numbers have not been supplied. The rubric mapping and remaining submission steps are in the appendix.')
 
 page(2,'Architecture & requirements')
 table(['Layer','Implemented responsibility'],[['Browser / React','Catalogue, registration, account pages, checkout and administration. The browser retains only the checkout draft; the server controls identity and pricing.'],['Vinext / Node.js','Route handlers validate requests, enforce access rules and execute application workflows. The local build uses Vite and Nitro.'],['mysql2 / repository','Parameterized SQL, connection pooling and transaction handling.'],['MySQL / InnoDB','Persistent records, relationships, uniqueness, checks, generated columns and transaction locks.']],[125,374])
@@ -61,7 +61,7 @@ body('The schema separates locations, reusable catalogue data, authentication an
 table(['Area','Tables and responsibilities'],[['Locations (3)','Province: province names. City: city within a province. Branch: rental location and contact details.'],['Fleet (6)','VehicleCategory: body type. VehicleModel: brand/model classification. Vehicle: registered asset, branch, rate and status. VehicleImage: ordered gallery and credits. Feature: reusable feature names. VehicleFeature: vehicle-feature association.'],['Accounts (4)','Customer: renter profile. AppUser: login and role. UserSession: hashed session tokens. PasswordResetToken: schema support for a future reset workflow.'],['Reservations (3)','Booking: dates, customer/vehicle snapshots and totals. RentalExtra: available add-ons and pricing. BookingExtra: selected add-ons with historical prices.'],['Payment and audit (5)','Payment: payment attempts and statuses. CancellationRequest: requests and reviews. BookingStatusHistory: status audit. BookingEmail: email-delivery tracking structure. VehicleReview: one review per booking.']],[105,394])
 sub('Normalization decisions')
 body('<b>Atomic values:</b> features and galleries use child/association tables rather than comma-separated columns. <b>Many-to-many relationships:</b> VehicleFeature separates reusable feature definitions from individual vehicles; BookingExtra associates reservations with reusable extras.')
-body('<b>Reduced repetition:</b> city/province data is separated from branches, and model/category data is separated from individual registered vehicles. This reduces update anomalies. A formal proof that every relation meets third normal form is outside this report.')
+body('<b>Reduced repetition:</b> city/province data is separated from branches, and model/category data is separated from individual registered vehicles. This reduces update anomalies. Pages 10-11 show the normalization process and its physical implementation exceptions.')
 body('<b>Deliberate historical snapshots:</b> Booking stores the customer name/email, vehicle name and applied daily rate. BookingExtra stores the selected name and price. These values preserve the original reservation when the live catalogue changes; this is intentional duplication for historical accuracy.')
 sub('Schema does not equal completed functionality')
 body('Password-reset and email-tracking tables exist, but the corresponding delivery workflows are not implemented. Review rows can feed catalogue ratings; a complete customer review submission and moderation workflow has not been verified.')
@@ -122,7 +122,7 @@ body('Install Node.js 22.13 or newer and MySQL 8.4. Import database/Database_Upd
 code('npm run fleet:import\nnpm run build:local\nnpm start')
 body('The fleet importer preserves existing registrations and extras. On a fresh installation, register an account and use npm run admin:promote -- YOUR-REGISTERED-EMAIL to grant administrator access. Do not include passwords or session tokens in an assignment submission.')
 sub('Remaining work and scope')
-table(['Priority','Action'],[['Before submission','Add the group identification details and align this report with the lecturer\'s rubric. Rehearse registration, reservation, cancellation, table inspection and SQL queries. Review catalogue rates and branch details.'],['Known limitations','Email delivery, password reset, email verification and licence verification are not enabled. Some branch, extra and gallery maintenance still requires Workbench.'],['Optional future work','A real payment provider, online hosting, broader automated testing, lint cleanup and operational backup/restore procedures. No money collection is required for the current automatic-approval scope.']],[115,384])
+table(['Priority','Action'],[['Before submission','Add the group identification details and review the rubric mapping and normalization exceptions with the lecturer. Rehearse registration, reservation, cancellation, table inspection and SQL queries. Review catalogue rates and branch details.'],['Known limitations','Email delivery, password reset, email verification and licence verification are not enabled. Some branch, extra and gallery maintenance still requires Workbench.'],['Optional future work','A real payment provider, online hosting, broader automated testing, lint cleanup and operational backup/restore procedures. No money collection is required for the current automatic-approval scope.']],[115,384])
 sub('Project sources')
 body('All technical findings come from the project artifacts below. The report cites implementation evidence rather than external product claims.')
 base='https://github.com/ashleyscomputer/drift-car-rental/blob/5e51535/'
@@ -130,6 +130,8 @@ refs=[('Schema and constraints','database/Database_Updated.sql'),('Booking and c
 for label,path in refs:
     story.append(p(f'<b>{label}:</b> <link href="{base+path}" color="#0071e3">{escape(path)}</link>','SmallDrift'))
 body('<b>Conclusion:</b> Drift demonstrates a working relational database application with persistent records, explicit relationships, server-enforced permissions and transactional reservation handling. Its strongest database-module evidence is the connection between schema constraints, real application operations and repeatable verification.')
+
+exec(compile((ROOT/'scripts/report-rubric-appendix.py').read_text(encoding='utf-8'), 'report-rubric-appendix.py', 'exec'))
 
 def footer(canvas,doc):
     canvas.saveState();w,h=A4

@@ -9,7 +9,7 @@ try {
   $randomGenerator = [Security.Cryptography.RandomNumberGenerator]::Create()
   try { $randomGenerator.GetBytes($passwordBytes) } finally { $randomGenerator.Dispose() }
   $appPassword = [BitConverter]::ToString($passwordBytes).Replace('-', '')
-  $sql = "CREATE USER IF NOT EXISTS 'drift_local'@'localhost' IDENTIFIED BY '$appPassword'; ALTER USER 'drift_local'@'localhost' IDENTIFIED BY '$appPassword'; GRANT SELECT, INSERT, UPDATE, DELETE ON drift_car_rental.* TO 'drift_local'@'localhost'; SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='drift_car_rental';"
+  $sql = "CREATE USER IF NOT EXISTS 'drift_local'@'localhost' IDENTIFIED BY '$appPassword'; ALTER USER 'drift_local'@'localhost' IDENTIFIED BY '$appPassword'; GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, DROP ON drift_car_rental.* TO 'drift_local'@'localhost'; SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='drift_car_rental';"
   $sql | & $mysqlExe --host=localhost --user=root --batch --skip-column-names
   if ($LASTEXITCODE -ne 0) { throw 'MySQL setup failed. No environment settings were saved.' }
   $envPath = Join-Path $projectPath '.env.local'

@@ -21,6 +21,7 @@ import {
   X,
   LockKeyhole,
 } from 'lucide-react';
+import { TableWorkspace } from './table-workspace';
 import { CatalogueSetup } from './catalogue-setup';
 import type { DatabaseSchema, SchemaTable } from '@/lib/database-schema';
 
@@ -339,7 +340,7 @@ export function DatabaseStudio({ onSaved }: { onSaved: () => Promise<void> }) {
                 )}
               </label>
               <div className="db-table-list">
-                {groups.map((g) => (
+                {[...groups, { name: 'Other', color: '#8dabc6', tables: [] }].map((g) => (
                   <div className="db-table-group" key={g.name}>
                     <p>
                       <span style={{ background: g.color }} />
@@ -695,6 +696,12 @@ export function DatabaseStudio({ onSaved }: { onSaved: () => Promise<void> }) {
               }}
             />
           )}
+          <TableWorkspace
+            onChanged={async () => {
+              await refresh();
+              await onSaved();
+            }}
+          />
           <footer className="db-footer">
             <span>
               <Database size={13} />
