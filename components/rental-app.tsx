@@ -275,8 +275,23 @@ function Reports({ bookings, vehicles, setToast }: { bookings: Booking[]; vehicl
     { title: 'Booking status', desc: 'Confirmed, pending and completed bookings.', value: `${bookings.length} records`, icon: ClipboardList, colour: 'bg-violet-50 text-violet-700' },
     { title: 'Top vehicles', desc: 'Most frequently booked vehicles.', value: bookings.length ? [...bookings].sort((a,b)=>bookings.filter(x=>x.vehicleId===b.vehicleId).length-bookings.filter(x=>x.vehicleId===a.vehicleId).length)[0].vehicle : 'No bookings yet', icon: CarFront, colour: 'bg-amber-50 text-amber-700' },
   ];
-  const download = (title: string) => { const content = `Drift Car Rental - ${title}\nGenerated: ${new Date().toLocaleDateString('en-ZA')}\nCurrent application data\n\nTotal bookings: ${bookings.length}\nTotal booking value: ${currency(total)}\nFleet size: ${vehicles.length}`; const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([content], { type: 'text/plain' })); link.download = `${title.toLowerCase().replaceAll(' ', '-')}.txt`; link.click(); setToast(`${title} downloaded.`); };
-  return <div><AdminHeading title="Reports" subtitle="Operational reports generated from current booking and fleet data." /><div className="mt-6 grid gap-5 md:grid-cols-2">{reports.map(({ title, desc, value, icon: Icon, colour }) => <div key={title} className="rounded-[24px] border border-black/[.05] bg-white p-6"><div className="flex items-start justify-between"><span className={`grid size-11 place-items-center rounded-2xl ${colour}`}><Icon className="size-5" /></span><Button variant="ghost" size="icon" aria-label={`Download ${title}`} onClick={() => download(title)}><Download /></Button></div><h3 className="mt-7 text-lg font-semibold">{title}</h3><p className="mt-1 text-sm text-black/45">{desc}</p><p className="mt-5 text-2xl font-semibold tracking-tight">{value}</p></div>)}</div></div>;
+  const [downloading, setDownloading] = useState(false);
+  const download = async (title: string) => {
+    setDownloading(true);
+    try {
+      const kind = title === 'Operations report' ? 'summary' : title.toLowerCase().replaceAll(' ', '-');
+      const response = await fetch(`/api/reports/pdf?kind=${kind}`, { cache: 'no-store' });
+      if (!response.ok) { const error = await response.json() as { error?: string }; throw new Error(error.error || 'Report could not be generated.'); }
+      const url = URL.createObjectURL(await response.blob());
+      const link = document.createElement('a');
+      link.href = url; link.download = `drift-${kind}.pdf`;
+      document.body.appendChild(link); link.click(); link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setToast(`${title} PDF downloaded.`);
+    } catch (error) { setToast(error instanceof Error ? error.message : 'Report could not be generated.'); }
+    finally { setDownloading(false); }
+  };
+  return <div><AdminHeading title="Reports" subtitle="Live database reports. Download a full summary or an individual PDF." action={<Button disabled={downloading} onClick={() => download('Operations report')} className="rounded-full bg-[#0071e3] text-white hover:bg-[#0077ed]"><Download />{downloading ? 'Generating PDF...' : 'Download PDF report'}</Button>} /><div className="mt-6 grid gap-5 md:grid-cols-2">{reports.map(({ title, desc, value, icon: Icon, colour }) => <div key={title} className="rounded-[24px] border border-black/[.05] bg-white p-6"><div className="flex items-start justify-between"><span className={`grid size-11 place-items-center rounded-2xl ${colour}`}><Icon className="size-5" /></span><Button variant="ghost" size="icon" disabled={downloading} aria-label={`Download ${title} PDF`} onClick={() => download(title)}><Download /></Button></div><h3 className="mt-7 text-lg font-semibold">{title}</h3><p className="mt-1 text-sm text-black/45">{desc}</p><p className="mt-5 text-2xl font-semibold tracking-tight">{value}</p></div>)}</div></div>;
 }
 
 function DatabaseManager({onRefresh}:{tables:DbTable[];onAdd:()=>void;onRefresh:()=>Promise<void>;setToast:(s:string)=>void}){return <DatabaseStudio onSaved={onRefresh}/>;}

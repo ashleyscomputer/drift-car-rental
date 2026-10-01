@@ -16,14 +16,23 @@ let vehicleId,branchId,extraId;
 try{
  await api('/api/bookings','GET',undefined,'',401);
  await api('/api/database/schema','GET',undefined,'',401);
+ await api('/api/reports/pdf','GET',undefined,'',401);
  const admin=await api('/api/auth/register','POST',{firstName:'Verification',lastName:tag,email:emails[0],password},'',201);
  const other=await api('/api/auth/register','POST',{firstName:'Verification',lastName:tag,email:emails[1],password},'',201);
  await api('/api/auth/login','POST',{email:emails[0],password:password+'x'},'',401);
  await api('/api/vehicles','POST',{},other.cookie,403);
  await api('/api/database/schema','GET',undefined,other.cookie,403);
+ await api('/api/reports/pdf','GET',undefined,other.cookie,403);
  await api('/api/catalogue','POST',{},admin.cookie,403);
  await db.execute("UPDATE AppUser SET role='Admin' WHERE login_email=?",[emails[0]]);
  const session=await api('/api/auth/session','GET',undefined,admin.cookie);assert.equal(session.data.user.role,'admin');
+ await api('/api/reports/pdf?kind=invalid','GET',undefined,admin.cookie,400);
+ for (const kind of ['summary','booking-value','fleet-utilisation','booking-status','top-vehicles']) {
+  const pdf = await fetch(base+'/api/reports/pdf?kind='+kind,{headers:{Cookie:admin.cookie}});
+  assert.equal(pdf.status,200);assert.equal(pdf.headers.get('content-type'),'application/pdf');
+  assert.equal(pdf.headers.get('cache-control'),'no-store');assert.ok(pdf.headers.get('content-disposition').includes('.pdf'));
+  assert.equal(Buffer.from(await pdf.arrayBuffer()).subarray(0,5).toString(),'%PDF-');
+ }
  const schema=await api('/api/database/schema','GET',undefined,admin.cookie);
  assert.ok(schema.data.tables.some(t=>t.name.toLowerCase()==='booking'&&t.ddl.startsWith('CREATE TABLE')&&t.columns.some(c=>c.key==='PRI')));
  assert.ok(schema.data.relations.some(r=>r.table.toLowerCase()==='booking'&&r.targetTable.toLowerCase()==='vehicle'));

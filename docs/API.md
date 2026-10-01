@@ -26,3 +26,5 @@ Booking requests contain vehicleId, startDate, endDate, pickupBranchId, returnBr
 POST /api/bookings returns paymentStatus=DemoApproved. It never accepts card information or charges money. Booking.is_demo=0 and Payment.is_demo=1. Do not represent simulated approval as paid revenue.
 
 See lib/fleet-admin.ts for full vehicle validation and lib/repository.ts for booking transitions. Error responses expose a message, not SQL details or credentials.
+
+GET /api/reports/pdf is admin-only and returns a downloadable PDF from a fresh database snapshot. Optional kind: summary (default), booking-value, fleet-utilisation, booking-status, top-vehicles. Reports cover all-time reservations, including cancellations; fleet counts include active vehicles only. Automatic approvals are excluded from collected payments. Invalid kinds return 400.
