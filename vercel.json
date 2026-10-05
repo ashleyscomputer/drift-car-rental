@@ -1,6 +1,1 @@
-{
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "installCommand": "npm install && npm install --no-save nitro@3.0.260903-beta",
-  "buildCommand": "NITRO_PRESET=vercel npx vite build",
-  "outputDirectory": ".output"
-}
+{"framework":null,"buildCommand":"npx vite build --config vite.vercel.config.ts"}

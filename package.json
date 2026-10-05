@@ -12,11 +12,16 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "vinext dev",
-    "build": "vinext build",
-    "start": "wrangler dev --config dist/server/wrangler.json",
+    "dev": "vite --config vite.local.config.ts",
+    "build": "vite build --config vite.local.config.ts",
+    "start": "node --env-file=.env.local scripts/start-local.mjs",
     "lint": "oxlint app components lib hooks workers",
-    "format": "oxfmt"
+    "format": "oxfmt",
+    "build:vercel": "vite build --config vite.vercel.config.ts",
+    "dev:local": "vite --config vite.local.config.ts",
+    "build:local": "vite build --config vite.local.config.ts",
+    "admin:promote": "node --env-file=.env.local scripts/promote-admin.mjs",
+    "fleet:import": "node --env-file=.env.local scripts/import-fleet.mjs"
   },
   "dependencies": {
     "@base-ui/react": "1.7.0",
@@ -32,6 +37,8 @@
     "embla-carousel-react": "8.5.2",
     "input-otp": "1.4.2",
     "lucide-react": "1.31.0",
+    "mysql2": "^3.24.5",
+    "pdf-lib": "^1.17.1",
     "react": "19.2.6",
     "react-day-picker": "9.8.1",
     "react-dom": "19.2.6",
@@ -49,11 +56,13 @@
     "@cloudflare/workers-types": "4.20260515.1",
     "@openai/sites-vite-plugin": "0.2.0",
     "@tailwindcss/postcss": "4.2.1",
+    "@tailwindcss/vite": "^4.3.3",
     "@types/node": "22.19.19",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "6.0.2",
     "@vitejs/plugin-rsc": "0.5.26",
+    "nitro": "^3.0.260903-beta",
     "oxfmt": "0.61.0",
     "oxlint": "1.76.0",
     "oxlint-tsgolint": "7.0.2001",
