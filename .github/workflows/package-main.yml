@@ -1,0 +1,28 @@
+name: Package Drift main
+
+on:
+  push:
+    branches:
+      - package-main-2026-10-05
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Create source archive
+        run: |
+          rm -rf .git
+          zip -r drift-car-rental-main.zip . -x "node_modules/*" ".env.local" ".env.*.local"
+
+      - name: Upload archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: drift-car-rental-main
+          path: drift-car-rental-main.zip
+          if-no-files-found: error
