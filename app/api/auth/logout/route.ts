@@ -1,8 +1,19 @@
-import { clearSessionCookie } from '@/lib/server-auth';
-
-export async function POST() {
-  return new Response(JSON.stringify({ ok: true }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json', 'Set-Cookie': clearSessionCookie() },
-  });
+import { revokeSession, sameOrigin, failure } from '@/lib/server-auth';
+export async function POST(request: Request) {
+  try {
+    sameOrigin(request);
+    await revokeSession(request);
+    return Response.json(
+      { ok: true },
+      {
+        headers: {
+          'Set-Cookie':
+            'drift_session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0',
+          'Cache-Control': 'no-store',
+        },
+      },
+    );
+  } catch (e) {
+    return failure(e);
+  }
 }
