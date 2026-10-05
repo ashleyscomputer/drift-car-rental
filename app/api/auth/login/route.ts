@@ -1,3 +1,5 @@
+import { createSessionCookie } from '@/lib/server-auth';
+
 type Account = {
   email: string;
   passwordHash: string;
@@ -35,8 +37,10 @@ export async function POST(request: Request) {
       return Response.json({ error: 'Incorrect email or password.' }, { status: 401 });
     }
 
-    return Response.json({ user: account.user });
-  } catch {
-    return Response.json({ error: 'Unable to sign in right now.' }, { status: 400 });
+    const headers = new Headers({ 'Content-Type': 'application/json' });
+    headers.append('Set-Cookie', await createSessionCookie(account.user));
+    return new Response(JSON.stringify({ user: account.user }), { status: 200, headers });
+  } catch (error) {
+    return Response.json({ error: error instanceof Error ? error.message : 'Unable to sign in right now.' }, { status: 400 });
   }
 }
