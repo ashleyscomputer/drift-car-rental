@@ -3,10 +3,11 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft, ArrowRight, CalendarDays, CarFront, Check, ChevronLeft, ChevronRight,
-  CircleDollarSign, ClipboardList, Database, Download, FileBarChart, Gauge, LayoutDashboard,
+  CircleDollarSign, ClipboardList, Database, FileBarChart, Gauge, LayoutDashboard,
   Menu, Pencil, Plus, Search, ShieldCheck, Sparkles, Star, Table2, Trash2,
   Users, X,
 } from 'lucide-react';
+import { BookingReports } from '@/components/booking-reports';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -218,7 +219,7 @@ function AdminContent({ section, vehicles, bookings, tables, onAddVehicle, onEdi
   if (section === 'Bookings') return <BookingsTable bookings={bookings} onRefresh={onRefresh} setToast={setToast} />;
   if (section === 'Customers') return <CustomersTable bookings={bookings} />;
   if (section === 'Payments') return <PaymentsTable bookings={bookings} />;
-  if (section === 'Reports') return <Reports bookings={bookings} vehicles={vehicles} setToast={setToast} />;
+  if (section === 'Reports') return <BookingReports bookings={bookings} vehicles={vehicles} admin />;
   if (section === 'Database') return <DatabaseManager tables={tables} onAdd={onAddTable} onRefresh={onRefresh} setToast={setToast} />;
   const values = section === 'Brands' ? [...new Set(vehicles.map((v) => v.brand))] : section === 'Categories' ? [...new Set(vehicles.map((v) => v.type))] : features;
   return <SimpleList title={section} values={values} setToast={setToast} />;
@@ -264,17 +265,6 @@ function BookingsTable({ bookings, onRefresh, setToast }: { bookings: Booking[];
 function CustomersTable({bookings}:{bookings:Booking[]}) { const customers = [...new Map(bookings.map(b => [b.email,b])).values()]; return <div><AdminHeading title="Customers" subtitle="Customers from submitted bookings."/><DataTable headers={['Name','Email','Bookings']} rows={customers.map(c=>[c.customer,c.email,bookings.filter(b=>b.email===c.email).length])}/></div>; }
 function PaymentsTable({bookings}:{bookings:Booking[]}) { return <div><AdminHeading title="Payments" subtitle="Payment records will sync here once a payment provider is connected."/><DataTable headers={['Booking','Customer','Amount','Status']} rows={bookings.map(b=>[b.id,b.customer,currency(b.totalCost),'Pending'])}/></div>; }
 
-function Reports({ bookings, vehicles, setToast }: { bookings: Booking[]; vehicles: Vehicle[]; setToast: (s: string) => void }) {
-  const total = bookings.reduce((sum, b) => sum + b.totalCost, 0);
-  const reports = [
-    { title: 'Revenue report', desc: 'Booking value by month and payment status.', value: currency(total), icon: CircleDollarSign, colour: 'bg-emerald-50 text-emerald-700' },
-    { title: 'Fleet utilisation', desc: 'Availability, rentals and maintenance status.', value: `${vehicles.filter((v) => v.status === 'Available').length}/${vehicles.length} available`, icon: Gauge, colour: 'bg-blue-50 text-blue-700' },
-    { title: 'Booking status', desc: 'Confirmed, pending and completed bookings.', value: `${bookings.length} records`, icon: ClipboardList, colour: 'bg-violet-50 text-violet-700' },
-    { title: 'Top vehicles', desc: 'Most booked vehicles and revenue contribution.', value: bookings.length ? [...bookings].sort((a,b)=>bookings.filter(x=>x.vehicleId===b.vehicleId).length-bookings.filter(x=>x.vehicleId===a.vehicleId).length)[0].vehicle : 'No bookings yet', icon: CarFront, colour: 'bg-amber-50 text-amber-700' },
-  ];
-  const download = (title: string) => { const content = `Drift Car Rental - ${title}\nGenerated: ${new Date().toLocaleDateString('en-ZA')}\nCurrent application data\n\nTotal bookings: ${bookings.length}\nTotal booking value: ${currency(total)}\nFleet size: ${vehicles.length}`; const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([content], { type: 'text/plain' })); link.download = `${title.toLowerCase().replaceAll(' ', '-')}.txt`; link.click(); setToast(`${title} downloaded.`); };
-  return <div><AdminHeading title="Reports" subtitle="Operational reports generated from current booking and fleet data." /><div className="mt-6 grid gap-5 md:grid-cols-2">{reports.map(({ title, desc, value, icon: Icon, colour }) => <div key={title} className="rounded-[24px] border border-black/[.05] bg-white p-6"><div className="flex items-start justify-between"><span className={`grid size-11 place-items-center rounded-2xl ${colour}`}><Icon className="size-5" /></span><Button variant="ghost" size="icon" aria-label={`Download ${title}`} onClick={() => download(title)}><Download /></Button></div><h3 className="mt-7 text-lg font-semibold">{title}</h3><p className="mt-1 text-sm text-black/45">{desc}</p><p className="mt-5 text-2xl font-semibold tracking-tight">{value}</p></div>)}</div></div>;
-}
 
 function DatabaseManager({ tables, onAdd, onRefresh, setToast }: { tables: DbTable[]; onAdd: () => void; onRefresh: () => Promise<void>; setToast: (s: string) => void }) {
   const [active, setActive] = useState<DbTable | null>(null);
