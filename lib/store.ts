@@ -26,6 +26,9 @@ export type Booking = {
   pickupCity: string;
   returnCity: string;
   extras: string[];
+  vehicleImage?: string;
+  vehicleRegistration?: string;
+  priceLines?: { label: string; quantity: number; unitPrice: number; total: number }[];
   extrasCost: number;
   totalCost: number;
   status: 'Confirmed' | 'Pending' | 'Cancellation Requested' | 'Completed' | 'Cancelled';

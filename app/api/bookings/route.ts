@@ -40,6 +40,9 @@ export async function POST(request: Request) {
       pickupCity:body.pickupCity,
       returnCity:body.returnCity,
       extras:selectedExtras.map((extra) => extra.label),
+      vehicleImage: vehicle.image,
+      vehicleRegistration: vehicle.registration,
+      priceLines: [{ label: "Vehicle rental", quantity: days, unitPrice: vehicle.dailyRate, total: days * vehicle.dailyRate }, ...selectedExtras.map(extra => ({ label: extra.label, quantity: extra.pricing === "daily" ? days : 1, unitPrice: extra.price, total: extra.price * (extra.pricing === "daily" ? days : 1) }))],
       extrasCost,
       totalCost,
     });
