@@ -107,3 +107,14 @@ export async function revokeSession(request: Request) {
       [digest(token)],
     );
 }
+
+
+/** Compatibility helpers for routes migrated from the earlier persistence layer. */
+export async function readServerSession(request: Request) {
+  return session(request);
+}
+
+export async function requireAdmin(request: Request) {
+  const user = await session(request);
+  return user?.role === 'admin';
+}
