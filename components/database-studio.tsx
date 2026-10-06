@@ -21,6 +21,7 @@ import {
   X,
   LockKeyhole,
 } from 'lucide-react';
+import { DatabaseCoursework } from './database-coursework';
 import { TableWorkspace } from './table-workspace';
 import { saveFile } from '@/lib/download';
 import { CatalogueSetup } from './catalogue-setup';
@@ -309,7 +310,24 @@ export function DatabaseStudio({ onSaved }: { onSaved: () => Promise<void> }) {
               </div>
             ))}
           </div>
-          <section className="db-workspace">
+          <DatabaseCoursework
+            onExplore={(name) => {
+              const match = schema.tables.find(
+                (t) => t.name.toLowerCase() === name,
+              );
+              if (match) {
+                select(match.name);
+                document
+                  .getElementById('database-schema-explorer')
+                  ?.scrollIntoView({ block: 'start' });
+              }
+            }}
+          />
+          <section
+            id="database-schema-explorer"
+            style={{ scrollMarginTop: 90 }}
+            className="db-workspace"
+          >
             <aside className="db-table-sidebar">
               <div className="db-sidebar-title">
                 <span>SCHEMA EXPLORER</span>
@@ -333,7 +351,10 @@ export function DatabaseStudio({ onSaved }: { onSaved: () => Promise<void> }) {
                 )}
               </label>
               <div className="db-table-list">
-                {[...groups, { name: 'Other', color: '#8dabc6', tables: [] }].map((g) => (
+                {[
+                  ...groups,
+                  { name: 'Other', color: '#8dabc6', tables: [] },
+                ].map((g) => (
                   <div className="db-table-group" key={g.name}>
                     <p>
                       <span style={{ background: g.color }} />

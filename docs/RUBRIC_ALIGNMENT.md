@@ -59,3 +59,7 @@ Live schema explorer; downloadable PDF reports; transaction locks and duplicate-
 ## Verification completed on 1 October 2026
 
 Type checking, local build and targeted lint passed. The full table-management integration cycle passed after enabling the database privileges: create table, insert/read/update/delete row, drop table, invalid-input rejection, administrator restriction and protected-table rejection. The existing booking/authentication integration suite and all five PDF exports also passed. All test records and tables were removed.
+
+## In-app explanation
+
+Admin > Database > Understand the design contains a system overview, interactive UNF/1NF/2NF/3NF walkthrough, rubric evidence checklist and presentation sequence. Each normalization stage links to the relevant live schema table. The teaching examples do not write records, and the physical normalization exceptions remain explicitly explained.
