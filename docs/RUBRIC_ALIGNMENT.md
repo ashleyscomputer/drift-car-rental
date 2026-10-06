@@ -62,4 +62,4 @@ Type checking, local build and targeted lint passed. The full table-management i
 
 ## In-app explanation
 
-Admin > Database > Understand the design contains a system overview, interactive UNF/1NF/2NF/3NF walkthrough, rubric evidence checklist and presentation sequence. Each normalization stage links to the relevant live schema table. The teaching examples do not write records, and the physical normalization exceptions remain explicitly explained.
+Admin > Database includes a concise UNF/1NF/2NF/3NF walkthrough with links to the relevant live schema tables. Rubric mapping and presentation guidance remain in the written documentation. Historical snapshots and stored totals are identified as physical normalization exceptions.
