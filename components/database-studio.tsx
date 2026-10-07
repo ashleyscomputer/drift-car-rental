@@ -9,7 +9,6 @@ import {
   Download,
   KeyRound,
   Link2,
-  Layers3,
   Table2,
   ShieldCheck,
   Code2,
@@ -236,11 +235,8 @@ export function DatabaseStudio({ onSaved }: { onSaved: () => Promise<void> }) {
                 LIVE SCHEMA <span className="db-live-divider" /> MySQL{' '}
                 {schema.version.split('-')[0]}
               </div>
-              <h2>Your data. Beautifully connected.</h2>
-              <p>
-                One relational system. Every vehicle, customer and reservation
-                connected through enforced keys.
-              </p>
+              <h2>Database</h2>
+
               <div className="db-database-name">
                 <Database size={16} />
                 <code>{schema.database}</code>
@@ -396,7 +392,7 @@ export function DatabaseStudio({ onSaved }: { onSaved: () => Promise<void> }) {
               <div className="db-inspector">
                 <div className="db-inspector-heading">
                   <div>
-                    <span className="db-section-kicker">TABLE SPOTLIGHT</span>
+                    <span className="db-section-kicker">TABLE</span>
                     <h2>
                       <span style={{ background: group(table.name).color }} />
                       {table.name}
@@ -646,54 +642,13 @@ export function DatabaseStudio({ onSaved }: { onSaved: () => Promise<void> }) {
               </div>
             )}
           </section>
-          <section className="db-design-notes">
-            <div>
-              <span className="db-section-kicker">BEYOND THE TABLES</span>
-              <h2>Built for data integrity.</h2>
-              <p>The decisions that keep the rental system consistent.</p>
-            </div>
-            <div className="db-notes-grid">
-              <article>
-                <div>
-                  01 <Layers3 size={19} />
-                </div>
-                <h3>Separate responsibilities</h3>
-                <p>
-                  Models, branches and customers have dedicated tables. Junction
-                  tables connect vehicles to features and bookings to extras.
-                </p>
-              </article>
-              <article>
-                <div>
-                  02 <ShieldCheck size={19} />
-                </div>
-                <h3>Rules in the database</h3>
-                <p>
-                  {schema.relations.length} foreign keys protect references.{' '}
-                  {checks} CHECK constraints validate stored values. Unique
-                  indexes prevent duplicate identities.
-                </p>
-              </article>
-              <article>
-                <div>
-                  03 <GitBranch size={19} />
-                </div>
-                <h3>All-or-nothing bookings</h3>
-                <p>
-                  The application locks the vehicle before checking dates, then
-                  saves the booking, extras, payment and history in one
-                  transaction.
-                </p>
-              </article>
-            </div>
-          </section>
           <section className="db-entry-panel">
             <div>
               <span className="db-entry-icon">
                 <Plus size={21} />
               </span>
               <div>
-                <h3>Grow the catalogue.</h3>
+                <h3>Catalogue</h3>
                 <p>Add a branch or rental extra directly to MySQL.</p>
               </div>
             </div>
@@ -738,166 +693,68 @@ function RelationMap({
   schema: DatabaseSchema;
   onSelect: (name: string) => void;
 }) {
-  const parents = [
-    ...new Set(
-      schema.relations
-        .filter((r) => r.table === table.name)
-        .map((r) => r.targetTable),
-    ),
-  ].filter((n) => n !== table.name);
-  const children = [
-    ...new Set(
-      schema.relations
-        .filter((r) => r.targetTable === table.name)
-        .map((r) => r.table),
-    ),
-  ].filter((n) => n !== table.name);
-  const height = Math.max(
-    210,
-    Math.max(parents.length, children.length) * 64 + 70,
+  const links = schema.relations.filter(
+    (r) => r.table === table.name || r.targetTable === table.name,
   );
-  const center = height / 2;
-  const position = (index: number, length: number) =>
-    center + (index - (length - 1) / 2) * 64;
-  const pk = table.columns
-    .filter((c) => c.key === 'PRI')
-    .map((c) => c.name)
-    .join(', ');
   return (
     <div className="db-map">
       <div className="db-map-title">
         <span>
-          <GitBranch size={13} />
-          RELATIONSHIP MAP
+          <GitBranch size={13} /> ENTITY RELATIONSHIPS
         </span>
-        <span>Click a table to explore</span>
+        <span>0..1 optional · 1 required · 0..N many</span>
       </div>
-      <div className="db-map-scroll">
-        <div className="db-map-canvas" style={{ height }}>
-          <svg
-            width="700"
-            height={height}
-            viewBox={'0 0 700 ' + height}
-            aria-hidden="true"
-          >
-            <defs>
-              <linearGradient id="db-line">
-                <stop stopColor="#c3ccd9" />
-                <stop offset="1" stopColor="#adc8e7" />
-              </linearGradient>
-            </defs>
-            {parents.map((n, i) => (
-              <path
-                key={'p' + n}
-                d={
-                  'M 186 ' +
-                  position(i, parents.length) +
-                  ' C 226 ' +
-                  position(i, parents.length) +
-                  ' 221 ' +
-                  center +
-                  ' 265 ' +
-                  center
-                }
-                fill="none"
-                stroke="url(#db-line)"
-                strokeWidth="1.5"
-              />
-            ))}
-            {children.map((n, i) => (
-              <path
-                key={'c' + n}
-                d={
-                  'M 435 ' +
-                  center +
-                  ' C 480 ' +
-                  center +
-                  ' 474 ' +
-                  position(i, children.length) +
-                  ' 514 ' +
-                  position(i, children.length)
-                }
-                fill="none"
-                stroke="url(#db-line)"
-                strokeWidth="1.5"
-              />
-            ))}
-          </svg>
-          <span className="db-map-direction db-map-direction-left">
-            REFERENCES
-          </span>
-          <span className="db-map-direction db-map-direction-right">
-            REFERENCED BY
-          </span>
-          {parents.map((n, i) => (
-            <MapNode
-              key={n}
-              name={n}
-              x={16}
-              y={position(i, parents.length) - 23}
-              onSelect={onSelect}
-            />
-          ))}
-          <div className="db-map-focus" style={{ left: 265, top: center - 37 }}>
-            <span>
-              <Table2 size={14} />
-              {table.name}
-            </span>
-            <small>
-              <KeyRound size={11} />
-              {pk || 'No primary key'}
-            </small>
-          </div>
-          {children.map((n, i) => (
-            <MapNode
-              key={n}
-              name={n}
-              x={514}
-              y={position(i, children.length) - 23}
-              onSelect={onSelect}
-            />
-          ))}
-          {!parents.length && (
-            <span className="db-map-empty" style={{ left: 24, top: center }}>
-              No parent references
-            </span>
-          )}
-          {!children.length && (
-            <span className="db-map-empty" style={{ left: 520, top: center }}>
-              No dependent tables
-            </span>
-          )}
-        </div>
-      </div>
-      <div className="db-map-legend">
-        <span>
-          <i /> Selected entity
-        </span>
-        <span>Lines represent declared foreign keys</span>
-      </div>
+      <details className="overflow-x-auto p-4">
+        <summary className="cursor-pointer text-sm text-blue-700">
+          Show {links.length} relationships
+        </summary>
+        {links.map((r) => {
+          const child = schema.tables.find((t) => t.name === r.table)!;
+          const column = child.columns.find((c) => c.name === r.column)!;
+          const unique = child.indexes.some(
+            (i) =>
+              Number(i.unique) === 1 &&
+              i.column === r.column &&
+              child.indexes.filter((j) => j.name === i.name).length === 1,
+          );
+          const parentCount = column.nullable === 'YES' ? '0..1' : '1';
+          const childCount = unique ? '0..1' : '0..N';
+          return (
+            <div
+              key={r.name + r.table}
+              className="min-w-[600px] border-b border-black/5 py-3 last:border-0"
+            >
+              <div className="flex items-center justify-between gap-3 text-sm">
+                <button
+                  className="w-40 rounded-lg border border-black/10 p-3 text-left font-mono text-blue-700"
+                  onClick={() => onSelect(r.targetTable)}
+                >
+                  {r.targetTable}
+                  <small className="block text-black/50">
+                    PK {r.targetColumn}
+                  </small>
+                </button>
+                <span className="font-mono text-xs">{parentCount}</span>
+                <span className="h-px flex-1 bg-black/20" />
+                <span className="font-mono text-xs">{childCount}</span>
+                <button
+                  className="w-48 rounded-lg border border-black/10 p-3 text-left font-mono text-blue-700"
+                  onClick={() => onSelect(r.table)}
+                >
+                  {r.table}
+                  <small className="block text-black/50">FK {r.column}</small>
+                </button>
+              </div>
+              <p className="mt-2 text-center text-xs text-black/55">
+                {r.table}.{r.column} → {r.targetTable}.{r.targetColumn}
+              </p>
+            </div>
+          );
+        })}
+        {!links.length && (
+          <p className="text-sm text-black/55">No declared foreign keys.</p>
+        )}
+      </details>
     </div>
-  );
-}
-function MapNode({
-  name,
-  x,
-  y,
-  onSelect,
-}: {
-  name: string;
-  x: number;
-  y: number;
-  onSelect: (name: string) => void;
-}) {
-  return (
-    <button
-      className="db-map-node"
-      style={{ left: x, top: y }}
-      onClick={() => onSelect(name)}
-    >
-      <span style={{ background: group(name).color }} />
-      <code>{name}</code>
-      <ChevronRight size={12} />
-    </button>
   );
 }

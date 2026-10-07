@@ -1,0 +1,55 @@
+[
+  {
+    "name": "UNF",
+    "title": "Start with the booking worksheet",
+    "rule": "Identify the key and repeating extras. Omit calculated totals.",
+    "relations": [
+      {"name":"RentalWorksheet", "key":["BookingID"], "fields":["CustomerID","CustomerName","VehicleID","PickupBranchID","PickupBranchName","CityID","CityName","ProvinceID","ProvinceName","StartDate","EndDate","DailyRateApplied","{ExtraID, ExtraName, Quantity, UnitPrice}"]}
+    ],
+    "dependencies": "BookingID identifies the worksheet. Each booking can contain several extras; braces mark the repeating group.",
+    "note": "This is a teaching projection of the booking screen, not an additional database table. Customer and location names here mean current master data; historical snapshots are discussed separately.",
+    "tables":["booking","bookingextra"]
+  },
+  {
+    "name": "1NF",
+    "title": "Remove repeating attributes",
+    "rule": "Move extras into their own relation and copy BookingID into its compound key.",
+    "relations": [
+      {"name":"BookingHeader", "key":["BookingID"], "fields":["CustomerID","CustomerName","VehicleID","PickupBranchID","PickupBranchName","CityID","CityName","ProvinceID","ProvinceName","StartDate","EndDate","DailyRateApplied"]},
+      {"name":"BookingExtraFlat", "key":["BookingID","ExtraID"], "fields":["ExtraName","Quantity","UnitPrice"],"foreign":["BookingID"]}
+    ],
+    "dependencies": "(BookingID, ExtraID) → Quantity, UnitPrice. ExtraID → ExtraName is still a partial dependency.",
+    "note": "Each cell now holds one value. One extra occurs at most once per booking; Quantity represents multiple units. Bookings with no extras remain in BookingHeader.",
+    "tables":["booking","bookingextra"]
+  },
+  {
+    "name": "2NF",
+    "title": "Remove partial key dependencies",
+    "rule": "Move ExtraName, which depends only on ExtraID, into RentalExtra.",
+    "relations": [
+      {"name":"BookingHeader", "key":["BookingID"], "fields":["CustomerID","CustomerName","VehicleID","PickupBranchID","PickupBranchName","CityID","CityName","ProvinceID","ProvinceName","StartDate","EndDate","DailyRateApplied"]},
+      {"name":"RentalExtra", "key":["ExtraID"], "fields":["ExtraName"]},
+      {"name":"BookingExtra", "key":["BookingID","ExtraID"], "fields":["Quantity","UnitPrice"],"foreign":["BookingID","ExtraID"]}
+    ],
+    "dependencies": "ExtraID → ExtraName. (BookingID, ExtraID) → Quantity, UnitPrice.",
+    "note": "The agreed UnitPrice stays with the booking-extra pair: the same extra may have a different price on another booking. BookingHeader has a single-column key and already meets 2NF for this projection.",
+    "tables":["rentalextra","bookingextra"]
+  },
+  {
+    "name": "3NF",
+    "title": "Remove transitive dependencies",
+    "rule": "Separate customer and location facts from the booking header.",
+    "relations": [
+      {"name":"Booking", "key":["BookingID"], "fields":["CustomerID","VehicleID","PickupBranchID","StartDate","EndDate","DailyRateApplied"],"foreign":["CustomerID","VehicleID","PickupBranchID"]},
+      {"name":"Customer", "key":["CustomerID"], "fields":["CustomerName"]},
+      {"name":"Branch", "key":["BranchID"], "fields":["BranchName","CityID"],"foreign":["CityID"]},
+      {"name":"City", "key":["CityID"], "fields":["CityName","ProvinceID"],"foreign":["ProvinceID"]},
+      {"name":"Province", "key":["ProvinceID"], "fields":["ProvinceName"]},
+      {"name":"RentalExtra", "key":["ExtraID"], "fields":["ExtraName"]},
+      {"name":"BookingExtra", "key":["BookingID","ExtraID"], "fields":["Quantity","UnitPrice"],"foreign":["BookingID","ExtraID"]}
+    ],
+    "dependencies": "BookingID → CustomerID → CustomerName; BookingID → PickupBranchID → CityID → ProvinceID. Move each descriptive fact to the entity that determines it.",
+    "note": "The live schema also has return_branch_id, uses first_name and last_name, and gives BookingExtra a surrogate primary key plus UNIQUE(booking_id, extra_id). Historical snapshots and calculated totals are implementation choices, not part of this strict 3NF projection.",
+    "tables":["customer","branch","city","province","bookingextra"]
+  }
+]
