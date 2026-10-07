@@ -24,7 +24,12 @@ export function pool() {
     ssl:
       process.env.MYSQL_SSL === 'false'
         ? undefined
-        : { rejectUnauthorized: true },
+        : {
+            rejectUnauthorized: true,
+            ...(process.env.MYSQL_SSL_CA
+              ? { ca: process.env.MYSQL_SSL_CA.replace(/\\n/g, '\n') }
+              : {}),
+          },
   }));
 }
 export async function rows<T>(

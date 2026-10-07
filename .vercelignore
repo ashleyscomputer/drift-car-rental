@@ -3,3 +3,6 @@ outputs
 tsconfig.tsbuildinfo
 .wrangler
 .git
+.env*
+*.pem
+.output
